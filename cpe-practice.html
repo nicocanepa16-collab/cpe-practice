@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>CPE Practice</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0c0c14; color: #e8e0d0; font-family: Georgia, serif; }
+  ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: #0c0c14; }
+  ::-webkit-scrollbar-thumb { background: #2a2a3e; border-radius: 2px; }
+  input, textarea, button { font-family: inherit; }
+  textarea { -webkit-appearance: none; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(8px) } to { opacity:1; transform:translateY(0) } }
+  @keyframes spin { from { transform:rotate(0deg) } to { transform:rotate(360deg) } }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
+
+// ── API KEY MANAGEMENT ────────────────────────────────────────────────────────
+const LS = {
+  get: (k, fallback = null) => { try { const v = localStorage.getItem(k); return v !== null ? JSON.parse(v) : fallback; } catch { return fallback; } },
+  set: (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+};
+
+// ── KWT BANK ──────────────────────────────────────────────────────────────────
+const KWT_BANK = [
+  { task_type:"key_word_transformation",difficulty:"C2",instructions:"Complete the second sentence so that it has a similar meaning to the first, using the word given. Use between 3 and 8 words including the key word.",original_sentence:"After being fired from his job, John felt he needed to think about his situation.",key_word:"STOCK",sentence_start:"After being fired from his job, John felt he needed to",sentence_end:"his situation.",answer:"take stock of",explanation:"'Take stock of' is a fixed idiom meaning to carefully assess or reflect on a situation.",distractor_notes:"Common mistakes: 'make stock of' or 'take stock on' — neither is idiomatic." },
+  { task_type:"key_word_transformation",difficulty:"C2",instructions:"Complete the second sentence so that it has a similar meaning to the first, using the word given. Use between 3 and 8 words including the key word.",original_sentence:"Jack was arrested for careless driving, but Harry used his influence to get him out of trouble.",key_word:"PULLED",sentence_start:"Jack was arrested for careless driving, but Harry",sentence_end:"to get him out of trouble.",answer:"pulled a few strings",explanation:"'Pull strings' means to use one's influence or connections to get something done.",distractor_notes:"Common mistakes: 'pulled the strings' (wrong article)." },
+  { task_type:"key_word_transformation",difficulty:"C2",instructions:"Complete the second sentence so that it has a similar meaning to the first, using the word given. Use between 3 and 8 words including the key word.",original_sentence:"If the new law is introduced, many small companies will be put out of business.",key_word:"DOWN",sentence_start:"If the new law is introduced, many small companies will have",sentence_end:".",answer:"to shut down",explanation:"'Shut down' means to cease operations. The structure requires 'to + infinitive' after 'will have'.",distractor_notes:"Both 'shut down' and 'close down' are accepted." },
+  { task_type:"key_word_transformation",difficulty:"C2",instructions:"Complete the second sentence so that it has a similar meaning to the first, using the word given. Use between 3 and 8 words including the key word.",original_sentence:"The government has adopted a firm position against racism and xenophobia.",key_word:"STAND",sentence_start:"The government has",sentence_end:"against racism and xenophobia.",answer:"taken a firm stand",explanation:"'Take a stand' means to adopt a clear position on an issue.",distractor_notes:"Don't say 'made a stand' — the collocation is 'take a stand'." },
+  { task_type:"key_word_transformation",difficulty:"C2",instructions:"Complete the second sentence so that it has a similar meaning to the first, using the word given. Use between 3 and 8 words including the key word.",original_sentence:"I was giving a speech when someone's mobile phone rang, and I forgot what I was saying.",key_word:"TRAIN",sentence_start:"I was giving a speech when someone's mobile phone rang, and I",sentence_end:".",answer:"lost my train of thought",explanation:"'Lose one's train of thought' is a fixed idiom meaning to forget what you were saying due to an interruption.",distractor_notes:"The full idiom is 'train of thought' — you cannot say 'lost my train of thinking'." },
+  { task_type:"key_word_transformation",difficulty:"C2",instructions:"Complete the second sentence so that it has a similar meaning to the first, using the word given. Use between 3 and 8 words including the key word.",original_sentence:"I think our neighbours have gone a bit too far with their Christmas decorations this year.",key_word:"TOP",sentence_start:"I think our neighbours' Christmas decorations",sentence_end:"this year.",answer:"are way over the top",explanation:"'Over the top' (OTT) means excessive or exaggerated.",distractor_notes:"Don't confuse 'over the top' with 'on top of'." },
+  { task_type:"key_word_transformation",difficulty:"C2",instructions:"Complete the second sentence so that it has a similar meaning to the first, using the word given. Use between 3 and 8 words including the key word.",original_sentence:"I was very angry with the referee and had to stop myself from punching him in the face.",key_word:"SHORT",sentence_start:"I was very angry with the referee and",sentence_end:"him in the face.",answer:"stopped short of punching",explanation:"'Stop short of doing something' means to almost do something extreme but hold back.",distractor_notes:"'stopped short of punching' not 'stopped short to punch' — always followed by -ing." },
+  { task_type:"key_word_transformation",difficulty:"C2",instructions:"Complete the second sentence so that it has a similar meaning to the first, using the word given. Use between 3 and 8 words including the key word.",original_sentence:"Our company cannot accept the agreement as it is now written, said the CEO.",key_word:"AS",sentence_start:"The CEO said that their company could",sentence_end:"stood.",answer:"not accept the agreement as it",explanation:"'As it stood' means 'in its current form/state'. Reported speech requires 'could not accept... as it stood'.",distractor_notes:"The phrase 'as it stood' is a fixed expression meaning 'in its current state'." },
+  { task_type:"key_word_transformation",difficulty:"C2",instructions:"Complete the second sentence so that it has a similar meaning to the first, using the word given. Use between 3 and 8 words including the key word.",original_sentence:"The world needs to rely less on fossil fuels and increase the use of renewable energy.",key_word:"REDUCE",sentence_start:"The world needs to",sentence_end:"fossil fuels and increase the use of renewable forms of energy.",answer:"reduce its reliance on",explanation:"'Reliance on' is the noun form of 'rely on'. Testing noun transformation from verb.",distractor_notes:"Don't say 'reduce its reliability on' — 'reliability' has a different meaning." },
+  { task_type:"key_word_transformation",difficulty:"C2",instructions:"Complete the second sentence so that it has a similar meaning to the first, using the word given. Use between 3 and 8 words including the key word.",original_sentence:"At the beginning he was opposed to the changes, but I talked to him and he eventually became more reasonable.",key_word:"SENSE",sentence_start:"At the beginning he was opposed to the changes, but I eventually managed to talk",sentence_end:"him.",answer:"some sense into",explanation:"'Talk sense into someone' means to persuade someone to think more reasonably.",distractor_notes:"The preposition is 'into' not 'to'." },
+  { task_type:"key_word_transformation",difficulty:"C2",instructions:"Complete the second sentence so that it has a similar meaning to the first, using the word given. Use between 3 and 8 words including the key word.",original_sentence:"I didn't at any time try to talk him into leaving the company.",key_word:"PERSUADE",sentence_start:"At",sentence_end:"to leave the company.",answer:"no time did I try to persuade him",explanation:"Negative inversion: 'At no time did I...' — when a negative adverbial starts the sentence, auxiliary inversion is required.",distractor_notes:"Don't forget the inversion: 'At no time DID I try' not 'At no time I tried'." },
+  { task_type:"key_word_transformation",difficulty:"C2",instructions:"Complete the second sentence so that it has a similar meaning to the first, using the word given. Use between 3 and 8 words including the key word.",original_sentence:"Although his father is a very well-known singer, Enrique Iglesias became a celebrity through his own efforts.",key_word:"IN",sentence_start:"Enrique Iglesias' father is a very well-known singer, but he became a celebrity himself",sentence_end:"right.",answer:"in his own",explanation:"'In one's own right' means independently, through one's own merit.",distractor_notes:"The full idiom is 'in his own right' — don't omit 'his own'." },
+  { task_type:"key_word_transformation",difficulty:"C2",instructions:"Complete the second sentence so that it has a similar meaning to the first, using the word given. Use between 3 and 8 words including the key word.",original_sentence:"There are loads of get-rich-quick books on the internet, but that's not necessarily a good thing.",key_word:"PLETHORA",sentence_start:"There",sentence_end:"get-rich-quick books on the internet, but that's not necessarily a good thing.",answer:"is a plethora of",explanation:"'A plethora of' means a large or excessive amount of something. Takes a singular verb ('is').",distractor_notes:"Note: 'There IS a plethora of' not 'There ARE'." },
+  { task_type:"key_word_transformation",difficulty:"C2",instructions:"Complete the second sentence so that it has a similar meaning to the first, using the word given. Use between 3 and 8 words including the key word.",original_sentence:"When you go abroad, don't forget to write to me.",key_word:"DROP",sentence_start:"When you go abroad, don't forget",sentence_end:".",answer:"to drop me a line",explanation:"'Drop someone a line' is an idiom meaning to write a short letter or message.",distractor_notes:"The idiom is 'drop a line', not 'drop a letter' or 'drop a note'." },
+  { task_type:"key_word_transformation",difficulty:"C2",instructions:"Complete the second sentence so that it has a similar meaning to the first, using the word given. Use between 3 and 8 words including the key word.",original_sentence:"We went out together because I wanted to find out about her news.",key_word:"CATCH",sentence_start:"We went out together because I wanted to",sentence_end:"news.",answer:"catch up with her",explanation:"'Catch up with someone' means to get the latest news from someone you haven't seen for a while.",distractor_notes:"'Catch up WITH her' is the most natural phrasing." },
+  { task_type:"key_word_transformation",difficulty:"C2",instructions:"Complete the second sentence so that it has a similar meaning to the first, using the word given. Use between 3 and 8 words including the key word.",original_sentence:"The new film was barely similar to the book I had read.",key_word:"BORE",sentence_start:"The new",sentence_end:"the book I had read.",answer:"film bore no resemblance to",explanation:"'Bear/bore no resemblance to' means to be completely unlike something.",distractor_notes:"Don't say 'bored no resemblance' — 'bore' is the past tense of 'bear'." },
+  { task_type:"key_word_transformation",difficulty:"C2",instructions:"Complete the second sentence so that it has a similar meaning to the first, using the word given. Use between 3 and 8 words including the key word.",original_sentence:"The coach didn't beat around the bush and gave concise and relevant answers to the questions.",key_word:"TO",sentence_start:"The coach's answers to the questions were concise",sentence_end:"point.",answer:"and to the",explanation:"'To the point' means concise and relevant.",distractor_notes:"Don't add extra words — the gap is just 'and to the'." },
+  { task_type:"key_word_transformation",difficulty:"C2",instructions:"Complete the second sentence so that it has a similar meaning to the first, using the word given. Use between 3 and 8 words including the key word.",original_sentence:"I want to buy a new car, but I'm going to postpone it until I get a promotion at work.",key_word:"HOLD",sentence_start:"I'm",sentence_end:"a new car until I get a promotion at work.",answer:"going to hold off buying",explanation:"'Hold off doing something' means to delay or postpone. Followed by -ing form.",distractor_notes:"'Hold off buying' not 'hold off to buy' — phrasal verb 'hold off' takes -ing." },
+  { task_type:"key_word_transformation",difficulty:"C2",instructions:"Complete the second sentence so that it has a similar meaning to the first, using the word given. Use between 3 and 8 words including the key word.",original_sentence:"Despite having to deal with increasing criticism from the media, the actor maintained his calm.",key_word:"FACE",sentence_start:"His calm attitude",sentence_end:"increasing criticism from the media, helped the actor to handle the situation very well.",answer:"in the face of",explanation:"'In the face of' means despite or when confronted with adversity.",distractor_notes:"The phrase is 'in the face of' — don't confuse with 'on the face of it'." },
+  { task_type:"key_word_transformation",difficulty:"C2",instructions:"Complete the second sentence so that it has a similar meaning to the first, using the word given. Use between 3 and 8 words including the key word.",original_sentence:"Salaries have not risen at the same rate as costs of housing, healthcare and education.",key_word:"KEPT",sentence_start:"Salaries haven't",sentence_end:"costs of housing, healthcare and education.",answer:"kept up with the rising",explanation:"'Keep up with' means to match the pace of something.",distractor_notes:"'Kept up with the rising' — don't say 'kept up to'." },
+  { task_type:"key_word_transformation",difficulty:"C2",instructions:"Complete the second sentence so that it has a similar meaning to the first, using the word given. Use between 3 and 8 words including the key word.",original_sentence:"The burglar got into the building by pretending to be a plumber.",key_word:"AS",sentence_start:"The burglar got into the building by",sentence_end:"plumber.",answer:"posing as a",explanation:"'Pose as' means to pretend to be someone else, usually to deceive.",distractor_notes:"'Posing as a plumber' not 'posing like a plumber' — the preposition is 'as'." },
+  { task_type:"key_word_transformation",difficulty:"C2",instructions:"Complete the second sentence so that it has a similar meaning to the first, using the word given. Use between 3 and 8 words including the key word.",original_sentence:"I think James probably forgot to invite me to his birthday party.",key_word:"MAY",sentence_start:"I think James",sentence_end:"invite me to his birthday party.",answer:"may have forgotten to",explanation:"'May have + past participle' expresses possibility about a past event.",distractor_notes:"'May have forgotten to' not 'may have neglected to' — though 'neglected' is also accepted." },
+  { task_type:"key_word_transformation",difficulty:"C2",instructions:"Complete the second sentence so that it has a similar meaning to the first, using the word given. Use between 3 and 8 words including the key word.",original_sentence:"For Paul, telling the truth is important only to the degree that it helps him achieve his goals.",key_word:"INSOFAR",sentence_start:"Paul tells the",sentence_end:"as it helps him to achieve his goals.",answer:"truth only insofar",explanation:"'Insofar as' is a formal conjunction meaning 'to the extent that'.",distractor_notes:"'Insofar as' is written as one word. 'In so far as' is also accepted." },
+];
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function shuffleArray(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function buildMCOptions_def(word, definition, allWordData) {
+  const others = Object.values(allWordData).filter(d => d.word !== word && d.definition).map(d => d.definition);
+  const distractors = shuffleArray(others).slice(0, 3);
+  while (distractors.length < 3) distractors.push("none of the above");
+  const all = shuffleArray([definition, ...distractors]);
+  const letters = ['A','B','C','D'];
+  const options = {};
+  all.forEach((def, i) => { options[letters[i]] = def; });
+  return { options, answer: letters[all.indexOf(definition)] };
+}
+
+function buildMCOptions_fill(word, distractors) {
+  const pool = [...(distractors || [])].slice(0, 3);
+  while (pool.length < 3) pool.push("—");
+  const all = shuffleArray([word, ...pool]);
+  const letters = ['A','B','C','D'];
+  const options = {};
+  all.forEach((w, i) => { options[letters[i]] = w; });
+  return { options, answer: letters[all.indexOf(word)] };
+}
+
+// ── SM-2 ──────────────────────────────────────────────────────────────────────
+function sm2Update(record, quality) {
+  const now = new Date();
+  let { interval = 1, easeFactor = 2.5, lapses = 0, totalReviews = 0 } = record || {};
+  totalReviews += 1;
+  if (quality < 1) {
+    lapses += 1; interval = 1;
+  } else {
+    if (totalReviews === 1) interval = 1;
+    else if (totalReviews === 2) interval = 3;
+    else interval = Math.round(interval * easeFactor);
+    easeFactor = Math.max(1.3, easeFactor + 0.1 - (1 - quality) * (0.08 + (1 - quality) * 0.02));
+  }
+  const dueDate = new Date(now);
+  dueDate.setDate(dueDate.getDate() + interval);
+  return { interval, easeFactor, lapses, totalReviews, dueDate: dueDate.toISOString() };
+}
+function isDueToday(record) { if (!record?.dueDate) return true; return new Date(record.dueDate) <= new Date(); }
+function daysUntilDue(record) { if (!record?.dueDate) return 0; return Math.max(0, Math.ceil((new Date(record.dueDate) - new Date()) / 86400000)); }
+
+// ── CONSTANTS ─────────────────────────────────────────────────────────────────
+const DIFFICULTY_COLORS = {
+  B2: { bg:"rgba(100,180,100,0.08)", border:"rgba(100,180,100,0.3)", text:"#78c878" },
+  C1: { bg:"rgba(80,160,220,0.08)", border:"rgba(80,160,220,0.3)", text:"#6ab0e0" },
+  C2: { bg:"rgba(201,169,110,0.08)", border:"rgba(201,169,110,0.3)", text:"#c9a96e" },
+};
+const TASK_TYPES = [
+  { id:"open_cloze", label:"Open Cloze" },
+  { id:"word_formation", label:"Word Formation" },
+  { id:"key_word_transformation", label:"Key Word" },
+  { id:"multiple_choice_cloze", label:"Multiple Choice" },
+];
+const WRITING_TYPES = [
+  { id:"essay", label:"Essay" },
+  { id:"article", label:"Article" },
+  { id:"report", label:"Report" },
+  { id:"review", label:"Review" },
+];
+
+const UOE_SYSTEM = `You are a Cambridge CPE Use of English examiner. Generate exercises at mixed difficulty: mostly C1 level with some B2 and some C2 items. Vocabulary and grammar should be genuinely challenging — upper-intermediate to advanced structures, collocations, and idiomatic expressions. Avoid trivially easy items.
+
+CRITICAL: Respond ONLY with raw valid JSON. No markdown, no backticks, no explanation before or after.
+
+Rules:
+- The answer must be completely unambiguous
+- For MULTIPLE CHOICE: the "answer" field must be the LETTER (A, B, C, or D), not the word itself
+- For KEY WORD TRANSFORMATION: candidate fills 3–8 words INCLUDING the key word (unchanged)
+- VARIETY IS ESSENTIAL: every exercise must use a completely different sentence, topic, grammar point, and vocabulary area.
+
+JSON format:
+{
+  "task_type": "open_cloze | word_formation | key_word_transformation | multiple_choice_cloze",
+  "difficulty": "B2 | C1 | C2",
+  "instructions": "Short clear instruction",
+  "sentence": "Sentence with _____ gap (for open_cloze, word_formation, multiple_choice_cloze only)",
+  "original_sentence": "Full original sentence (key_word_transformation only)",
+  "sentence_start": "Part before the gap (key_word_transformation only)",
+  "sentence_end": "Part after the gap (key_word_transformation only)",
+  "base_word": "BASE (word_formation only, in caps)",
+  "key_word": "KEYWORD (key_word_transformation only, in caps)",
+  "options": { "A": "word1", "B": "word2", "C": "word3", "D": "word4" },
+  "answer": "for MC: the correct LETTER (A/B/C/D); for others: the exact word or phrase",
+  "explanation": "Why this is correct — grammar rule or vocabulary note.",
+  "distractor_notes": "Why the wrong answers don't work."
+}`;
+
+const WRITING_SYSTEM = `You are a Cambridge CPE writing examiner and coach.
+Respond ONLY with raw valid JSON. No markdown, no backticks.
+
+For prompts:
+{
+  "task_type": "essay | article | report | review",
+  "difficulty": "C1",
+  "instructions": "Full CPE-style prompt with context and task (3-4 sentences)",
+  "word_count": "240-280",
+  "tip": "One practical C1-C2 tip for this task type"
+}
+
+For feedback:
+{
+  "score": 1-5,
+  "band": "Excellent | Good | Adequate | Inadequate | Poor",
+  "content": "...",
+  "grammar": "...",
+  "vocabulary": "...",
+  "organisation": "...",
+  "task_achievement": "...",
+  "improved_excerpt": "Rewrite of the weakest part at C1-C2 level",
+  "overall_tip": "The single most important thing to improve"
+}`;
+
+const VOCAB_SYSTEM = `You are a vocabulary exercise generator for Cambridge C2 Proficiency (CPE) exam preparation.
+Given a list of English words or phrases, generate exercise data for each one.
+Respond ONLY with a raw JSON array. No markdown, no backticks, no explanation before or after.
+
+For each word/phrase, return an object with this exact structure:
+{
+  "word": "the exact word or phrase as given",
+  "definition": "clear, precise definition in 1-2 sentences, C2 level",
+  "part_of_speech": "noun | verb | adjective | adverb | phrase | idiom | collocation",
+  "register": "formal | neutral | informal | literary",
+  "synonyms": ["synonym1", "synonym2", "synonym3"],
+  "example": "A natural, contextually rich sentence that uses the word, with the word itself replaced by exactly: _____",
+  "distractors": ["plausible_wrong_word1", "plausible_wrong_word2", "plausible_wrong_word3"]
+}
+
+Rules for distractors: real English words/phrases that are semantically related or easily confused with the target word but clearly wrong in context. Same difficulty level (C1-C2).
+Rules for example: the blank must be exactly _____ (five underscores). Sentence should make the answer inferable from context but not trivially obvious.`;
+
+// ── API CALL ──────────────────────────────────────────────────────────────────
+async function callClaude(systemPrompt, userMessage, apiKey) {
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-api-key": apiKey, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" },
+    body: JSON.stringify({ model: "claude-sonnet-4-5", max_tokens: 4000, system: systemPrompt, messages: [{ role: "user", content: userMessage }] }),
+  });
+  if (!res.ok) { const t = await res.text(); throw new Error(`API ${res.status}: ${t.slice(0,200)}`); }
+  const data = await res.json();
+  const text = (data.content || []).map(b => b.text || "").join("");
+  try { return JSON.parse(text.replace(/```json|```/g, "").trim()); }
+  catch { throw new Error("Parse error: " + text.slice(0, 200)); }
+}
+
+async function fetchBatch(taskType, apiKey) {
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-api-key": apiKey, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" },
+    body: JSON.stringify({ model: "claude-sonnet-4-5", max_tokens: 4000, system: UOE_SYSTEM, messages: [{ role: "user", content: `Generate EXACTLY 5 different ${taskType} exercises in a JSON array. Each must test a completely different grammar point, vocabulary area, and use a different sentence topic. No repetition. Difficulty: mix of B2, C1, C2 — mostly C1. Return ONLY a raw JSON array: [ {...}, {...}, {...}, {...}, {...} ]` }] }),
+  });
+  if (!res.ok) { const t = await res.text(); throw new Error(`API ${res.status}: ${t.slice(0,200)}`); }
+  const data = await res.json();
+  const text = (data.content || []).map(b => b.text || "").join("");
+  const cleaned = text.replace(/```json|```/g, "").trim();
+  try { const parsed = JSON.parse(cleaned); return Array.isArray(parsed) ? parsed : [parsed]; }
+  catch { throw new Error("Batch parse error: " + cleaned.slice(0, 200)); }
+}
+
+async function fetchVocabBatch(batch, apiKey) {
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-api-key": apiKey, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" },
+    body: JSON.stringify({ model: "claude-sonnet-4-5", max_tokens: 4000, system: VOCAB_SYSTEM, messages: [{ role: "user", content: `Generate exercise data for these ${batch.length} words/phrases: ${batch.join(", ")}. Return a JSON array with exactly ${batch.length} objects in the same order.` }] }),
+  });
+  if (!res.ok) throw new Error(`API ${res.status}`);
+  const data = await res.json();
+  const text = (data.content || []).map(b => b.text || "").join("");
+  return JSON.parse(text.replace(/```json|```/g, "").trim());
+}
+
+// ── SHARED UI ─────────────────────────────────────────────────────────────────
+function Spinner({ text }) {
+  return (
+    <div style={{ textAlign:"center", padding:"60px 0", color:"#7a6e5f" }}>
+      <div style={{ fontSize:28, marginBottom:16, display:"inline-block", animation:"spin 1.2s linear infinite" }}>⟳</div>
+      <div style={{ fontFamily:"monospace", fontSize:12, letterSpacing:2 }}>{text}</div>
+    </div>
+  );
+}
+function ErrorBox({ msg, onRetry }) {
+  return (
+    <div style={{ textAlign:"center", padding:"40px 20px" }}>
+      <div style={{ fontSize:28, marginBottom:12 }}>⚠️</div>
+      <div style={{ fontSize:12, color:"#c86e6e", fontFamily:"monospace", marginBottom:20, maxWidth:480, margin:"0 auto 20px", lineHeight:1.6 }}>{msg}</div>
+      {onRetry && <button onClick={onRetry} style={{ background:"rgba(201,169,110,0.1)", border:"1px solid rgba(201,169,110,0.3)", borderRadius:8, padding:"10px 24px", cursor:"pointer", color:"#c9a96e", fontSize:12, fontFamily:"monospace", letterSpacing:2 }}>TRY AGAIN</button>}
+    </div>
+  );
+}
+
+// ── API KEY SCREEN ────────────────────────────────────────────────────────────
+function ApiKeyScreen({ onSave }) {
+  const [val, setVal] = useState("");
+  return (
+    <div style={{ minHeight:"100vh", display:"flex", alignItems:"center", justifyContent:"center", background:"linear-gradient(160deg,#0c0c14,#111118)", padding:24 }}>
+      <div style={{ width:"100%", maxWidth:440 }}>
+        <div style={{ marginBottom:32, textAlign:"center" }}>
+          <div style={{ fontSize:9, letterSpacing:3, color:"#7a6e5f", fontFamily:"monospace", marginBottom:8 }}>CAMBRIDGE C2</div>
+          <div style={{ fontSize:22, fontWeight:700, color:"#f0e8d8" }}>CPE <span style={{ color:"#c9a96e" }}>Practice</span></div>
+        </div>
+        <div style={{ background:"rgba(255,255,255,0.03)", border:"1px solid #2a2a3e", borderRadius:12, padding:28 }}>
+          <div style={{ fontSize:13, color:"#9a8e7e", marginBottom:20, lineHeight:1.8 }}>
+            To use this app you need an Anthropic API key. It's saved only on this device.
+            <br/><br/>
+            Get one free at <span style={{ color:"#c9a96e" }}>console.anthropic.com</span> → API Keys.
+          </div>
+          <input
+            value={val} onChange={e => setVal(e.target.value)}
+            placeholder="sk-ant-..."
+            type="password"
+            style={{ width:"100%", background:"rgba(255,255,255,0.04)", border:"1px solid #2a2a3e", borderRadius:8, padding:"13px 16px", color:"#e8e0d0", fontSize:14, fontFamily:"monospace", outline:"none", marginBottom:14 }}
+          />
+          <button onClick={() => { if (val.trim()) onSave(val.trim()); }}
+            disabled={!val.trim()}
+            style={{ width:"100%", background:val.trim()?"rgba(201,169,110,0.14)":"rgba(255,255,255,0.03)", border:val.trim()?"1px solid rgba(201,169,110,0.4)":"1px solid #2a2a3e", borderRadius:8, padding:"13px", cursor:val.trim()?"pointer":"not-allowed", color:val.trim()?"#c9a96e":"#7a6e5f", fontSize:12, fontFamily:"monospace", letterSpacing:3 }}>
+            SAVE & CONTINUE →
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── UOE CARD ──────────────────────────────────────────────────────────────────
+function UoECard({ exercise, onNext }) {
+  const [submitted, setSubmitted] = useState(null);
+  const [textVal, setTextVal] = useState("");
+  const diff = DIFFICULTY_COLORS[exercise.difficulty] || DIFFICULTY_COLORS.C1;
+  const isMC = exercise.task_type === "multiple_choice_cloze";
+  const isKWT = exercise.task_type === "key_word_transformation";
+  const normalize = s => (s||"").toLowerCase().trim().replace(/\s+/g," ").replace(/[\u2018\u2019]/g,"'");
+  const checkAnswer = (raw) => {
+    const correct = normalize(raw) === normalize(exercise.answer);
+    const displayAnswer = isMC ? (exercise.options?.[raw] || raw) : raw;
+    setSubmitted({ raw, displayAnswer, correct });
+  };
+  const renderGap = () => {
+    const s = exercise.sentence || "";
+    const parts = s.split("_____");
+    if (parts.length < 2) return <span>{s}</span>;
+    return <span>{parts[0]}<span style={{ display:"inline-block", minWidth:90, borderBottom:submitted?"none":"2px solid rgba(201,169,110,0.5)", color:submitted?(submitted.correct?"#6dc87e":"#c86e6e"):"transparent", fontWeight:700, margin:"0 4px", textAlign:"center" }}>{submitted?submitted.displayAnswer:"______"}</span>{parts[1]}</span>;
+  };
+  return (
+    <div style={{ animation:"fadeIn 0.3s ease" }}>
+      <div style={{ display:"flex", gap:8, marginBottom:18 }}>
+        <span style={{ background:diff.bg, border:`1px solid ${diff.border}`, borderRadius:4, padding:"3px 10px", fontSize:10, letterSpacing:2, color:diff.text, fontFamily:"monospace", textTransform:"uppercase" }}>{exercise.difficulty}</span>
+        <span style={{ background:"rgba(255,255,255,0.04)", border:"1px solid #2a2a3e", borderRadius:4, padding:"3px 10px", fontSize:10, letterSpacing:2, color:"#7a6e5f", fontFamily:"monospace", textTransform:"uppercase" }}>
+          {TASK_TYPES.find(t=>t.id===exercise.task_type)?.label||exercise.task_type}
+        </span>
+      </div>
+      <p style={{ margin:"0 0 18px", fontSize:13, color:"#9a8e7e", fontStyle:"italic", lineHeight:1.6 }}>{exercise.instructions}</p>
+      {isKWT && (
+        <div style={{ marginBottom:20 }}>
+          <div style={{ background:"rgba(255,255,255,0.02)", border:"1px solid #2a2a3e", borderRadius:8, padding:"16px 22px", marginBottom:12 }}>
+            <div style={{ fontSize:10, letterSpacing:2, color:"#7a6e5f", fontFamily:"monospace", textTransform:"uppercase", marginBottom:8 }}>Original sentence</div>
+            <div style={{ fontSize:16, lineHeight:1.8, color:"#e8e0d0" }}>{exercise.original_sentence}</div>
+          </div>
+          <div style={{ marginBottom:12, display:"flex", alignItems:"center", gap:10, flexWrap:"wrap" }}>
+            <span style={{ fontSize:11, color:"#7a6e5f", fontFamily:"monospace", letterSpacing:1 }}>KEY WORD</span>
+            <span style={{ padding:"4px 14px", background:"rgba(201,169,110,0.1)", border:"1px solid rgba(201,169,110,0.3)", borderRadius:4, color:"#c9a96e", fontFamily:"monospace", fontWeight:700, letterSpacing:2, fontSize:14 }}>{exercise.key_word}</span>
+            <span style={{ fontSize:11, color:"#7a6e5f", fontFamily:"monospace" }}>3–8 words · do not modify the key word</span>
+          </div>
+          <div style={{ background:"rgba(255,255,255,0.025)", border:"1px solid #2a2a3e", borderLeft:"3px solid rgba(201,169,110,0.35)", borderRadius:8, padding:"18px 22px", fontSize:16, lineHeight:2, color:"#e8e0d0" }}>
+            {exercise.sentence_start}{" "}
+            <span style={{ display:"inline-block", minWidth:160, borderBottom:submitted?"none":"2px dashed rgba(201,169,110,0.5)", color:submitted?(submitted.correct?"#6dc87e":"#c86e6e"):"transparent", fontWeight:700, margin:"0 6px", textAlign:"center", fontStyle:"italic" }}>
+              {submitted?submitted.displayAnswer:"_ _ _ _ _ _ _ _"}
+            </span>
+            {" "}{exercise.sentence_end}
+          </div>
+        </div>
+      )}
+      {!isKWT && (
+        <div style={{ background:"rgba(255,255,255,0.025)", border:"1px solid #2a2a3e", borderLeft:"3px solid rgba(201,169,110,0.35)", borderRadius:8, padding:"22px 26px", marginBottom:16, fontSize:17, lineHeight:1.9, color:"#e8e0d0" }}>
+          {renderGap()}
+        </div>
+      )}
+      {exercise.base_word && (
+        <div style={{ marginBottom:16, display:"flex", alignItems:"center", gap:10 }}>
+          <span style={{ fontSize:11, color:"#7a6e5f", fontFamily:"monospace", letterSpacing:1 }}>BASE WORD</span>
+          <span style={{ padding:"4px 14px", background:"rgba(201,169,110,0.1)", border:"1px solid rgba(201,169,110,0.3)", borderRadius:4, color:"#c9a96e", fontFamily:"monospace", fontWeight:700, letterSpacing:2, fontSize:14 }}>{exercise.base_word}</span>
+        </div>
+      )}
+      {!submitted && (
+        isMC ? (
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:16 }}>
+            {Object.entries(exercise.options||{}).map(([letter,word]) => (
+              <button key={letter} onClick={() => checkAnswer(letter)}
+                style={{ background:"rgba(255,255,255,0.03)", border:"1px solid #2a2a3e", borderRadius:8, padding:"12px 16px", cursor:"pointer", color:"#e8e0d0", fontSize:14, textAlign:"left", display:"flex", gap:10, alignItems:"center" }}>
+                <span style={{ color:"#c9a96e", fontFamily:"monospace", fontWeight:700, minWidth:20 }}>{letter}</span>
+                <span>{word}</span>
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div style={{ display:"flex", gap:10 }}>
+            <input value={textVal} onChange={e => setTextVal(e.target.value)}
+              onKeyDown={e => e.key==="Enter" && textVal.trim() && checkAnswer(textVal.trim())}
+              placeholder={isKWT?"Enter 3–8 words including the key word...":exercise.task_type==="word_formation"?"Enter transformed word...":"Enter one word..."}
+              autoFocus
+              style={{ flex:1, background:"rgba(255,255,255,0.03)", border:"1px solid #2a2a3e", borderRadius:8, padding:"13px 18px", color:"#e8e0d0", fontSize:15, outline:"none" }}
+            />
+            <button onClick={() => textVal.trim() && checkAnswer(textVal.trim())}
+              style={{ background:"rgba(201,169,110,0.12)", border:"1px solid rgba(201,169,110,0.35)", borderRadius:8, padding:"13px 22px", cursor:"pointer", color:"#c9a96e", fontSize:12, fontFamily:"monospace", letterSpacing:2 }}>CHECK</button>
+          </div>
+        )
+      )}
+      {submitted && (
+        <div style={{ animation:"fadeIn 0.25s ease" }}>
+          <div style={{ background:submitted.correct?"rgba(80,200,120,0.06)":"rgba(200,80,80,0.06)", border:`1px solid ${submitted.correct?"rgba(80,200,120,0.25)":"rgba(200,80,80,0.25)"}`, borderRadius:8, padding:"18px 22px", marginBottom:14 }}>
+            <div style={{ fontSize:12, fontFamily:"monospace", letterSpacing:2, color:submitted.correct?"#6dc87e":"#c86e6e", marginBottom:8 }}>{submitted.correct?"✓  CORRECT":"✗  INCORRECT"}</div>
+            <div><span style={{ fontSize:12, color:"#7a6e5f", fontFamily:"monospace" }}>ANSWER: </span><span style={{ color:"#c9a96e", fontWeight:700, fontSize:15 }}>{isMC?`${exercise.answer} — ${exercise.options?.[exercise.answer]}`:exercise.answer}</span></div>
+          </div>
+          <div style={{ marginBottom:12, padding:"16px 20px", background:"rgba(255,255,255,0.02)", border:"1px solid #2a2a3e", borderRadius:8 }}>
+            <div style={{ fontSize:10, letterSpacing:2, color:"#7a6e5f", fontFamily:"monospace", textTransform:"uppercase", marginBottom:8 }}>Explanation</div>
+            <div style={{ fontSize:13.5, color:"#c0b49e", lineHeight:1.75 }}>{exercise.explanation}</div>
+          </div>
+          {exercise.distractor_notes && (
+            <div style={{ marginBottom:16, padding:"12px 18px", background:"rgba(100,120,255,0.04)", border:"1px solid rgba(100,120,255,0.15)", borderRadius:6, fontSize:12, color:"#8888cc", fontFamily:"monospace", lineHeight:1.6 }}>⚠ {exercise.distractor_notes}</div>
+          )}
+          <button onClick={() => onNext(submitted.correct)}
+            style={{ background:"rgba(201,169,110,0.1)", border:"1px solid rgba(201,169,110,0.3)", borderRadius:8, padding:"12px 28px", cursor:"pointer", color:"#c9a96e", fontSize:12, fontFamily:"monospace", letterSpacing:2 }}>
+            NEXT EXERCISE →
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── WRITING SECTION ───────────────────────────────────────────────────────────
+function WritingSection({ apiKey }) {
+  const [writingType, setWritingType] = useState("random");
+  const [prompt, setPrompt] = useState(null);
+  const [userText, setUserText] = useState("");
+  const [feedback, setFeedback] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const wordCount = userText.trim().split(/\s+/).filter(Boolean).length;
+
+  const generatePrompt = async () => {
+    setLoading(true); setPrompt(null); setFeedback(null); setUserText(""); setError(null);
+    const types = WRITING_TYPES.map(t=>t.id);
+    const type = writingType==="random" ? types[Math.floor(Math.random()*types.length)] : writingType;
+    try { setPrompt(await callClaude(WRITING_SYSTEM, `Generate a CPE ${type} writing prompt at C1 level.`, apiKey)); }
+    catch(e) { setError(e.message); }
+    setLoading(false);
+  };
+
+  const getFeedback = async () => {
+    if (!userText.trim() || !prompt) return;
+    setLoading(true); setError(null);
+    try { setFeedback(await callClaude(WRITING_SYSTEM, `Give CPE examiner feedback on this ${prompt.task_type}.\n\nPrompt: ${prompt.instructions}\n\nResponse:\n${userText}`, apiKey)); }
+    catch(e) { setError(e.message); }
+    setLoading(false);
+  };
+
+  return (
+    <div>
+      <div style={{ display:"flex", gap:6, marginBottom:28, flexWrap:"wrap" }}>
+        {[{ id:"random", label:"ALL TYPES" }, ...WRITING_TYPES.map(t=>({ id:t.id, label:t.label.toUpperCase() }))].map(t => (
+          <button key={t.id} onClick={() => setWritingType(t.id)}
+            style={{ background:writingType===t.id?"rgba(201,169,110,0.14)":"rgba(255,255,255,0.03)", border:writingType===t.id?"1px solid rgba(201,169,110,0.4)":"1px solid #2a2a3e", borderRadius:6, padding:"5px 10px", cursor:"pointer", color:writingType===t.id?"#c9a96e":"#7a6e5f", fontSize:10, fontFamily:"monospace", letterSpacing:0.5, whiteSpace:"nowrap" }}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+      {!prompt && !loading && !error && (
+        <div style={{ textAlign:"center", padding:"60px 0" }}>
+          <div style={{ fontSize:48, marginBottom:20 }}>✍️</div>
+          <div style={{ fontSize:15, color:"#9a8e7e", marginBottom:8 }}>Ready to practise Writing?</div>
+          <div style={{ fontSize:12, color:"#7a6e5f", fontFamily:"monospace", marginBottom:32 }}>C1 prompts · Examiner-style feedback</div>
+          <button onClick={generatePrompt} style={{ background:"rgba(201,169,110,0.12)", border:"1px solid rgba(201,169,110,0.4)", borderRadius:10, padding:"14px 36px", cursor:"pointer", color:"#c9a96e", fontSize:13, fontFamily:"monospace", letterSpacing:3 }}>GET A PROMPT</button>
+        </div>
+      )}
+      {loading && <Spinner text="WORKING..." />}
+      {error && <ErrorBox msg={error} onRetry={generatePrompt} />}
+      {prompt && !loading && (
+        <div style={{ animation:"fadeIn 0.3s ease" }}>
+          <div style={{ display:"flex", gap:8, marginBottom:18 }}>
+            <span style={{ background:"rgba(80,160,220,0.08)", border:"1px solid rgba(80,160,220,0.3)", borderRadius:4, padding:"3px 10px", fontSize:10, letterSpacing:2, color:"#6ab0e0", fontFamily:"monospace", textTransform:"uppercase" }}>C1</span>
+            <span style={{ background:"rgba(255,255,255,0.04)", border:"1px solid #2a2a3e", borderRadius:4, padding:"3px 10px", fontSize:10, letterSpacing:2, color:"#7a6e5f", fontFamily:"monospace", textTransform:"uppercase" }}>{prompt.task_type}</span>
+            <span style={{ background:"rgba(255,255,255,0.04)", border:"1px solid #2a2a3e", borderRadius:4, padding:"3px 10px", fontSize:10, letterSpacing:2, color:"#7a6e5f", fontFamily:"monospace", textTransform:"uppercase" }}>{prompt.word_count} words</span>
+          </div>
+          <div style={{ background:"rgba(255,255,255,0.025)", border:"1px solid #2a2a3e", borderLeft:"3px solid rgba(201,169,110,0.35)", borderRadius:8, padding:"22px 26px", marginBottom:16, fontSize:15, lineHeight:1.9, color:"#e8e0d0" }}>{prompt.instructions}</div>
+          {prompt.tip && <div style={{ marginBottom:20, padding:"12px 18px", background:"rgba(100,120,255,0.04)", border:"1px solid rgba(100,120,255,0.15)", borderRadius:6, fontSize:12, color:"#8888cc", fontFamily:"monospace", lineHeight:1.6 }}>💡 {prompt.tip}</div>}
+          {!feedback && (
+            <div>
+              <textarea value={userText} onChange={e => setUserText(e.target.value)} placeholder={`Write your ${prompt.task_type} here...`}
+                style={{ width:"100%", minHeight:240, background:"rgba(255,255,255,0.03)", border:"1px solid #2a2a3e", borderRadius:8, padding:"16px", color:"#e8e0d0", fontSize:15, lineHeight:1.8, resize:"vertical", outline:"none" }}
+              />
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:10 }}>
+                <span style={{ fontSize:12, color:wordCount>280?"#c86e6e":wordCount>=240?"#6dc87e":"#7a6e5f", fontFamily:"monospace" }}>{wordCount} / 240–280 words</span>
+                <div style={{ display:"flex", gap:8 }}>
+                  <button onClick={generatePrompt} style={{ background:"transparent", border:"1px solid #2a2a3e", borderRadius:8, padding:"10px 18px", cursor:"pointer", color:"#7a6e5f", fontSize:11, fontFamily:"monospace", letterSpacing:1 }}>NEW PROMPT</button>
+                  <button onClick={getFeedback} disabled={!userText.trim()}
+                    style={{ background:userText.trim()?"rgba(201,169,110,0.12)":"rgba(255,255,255,0.03)", border:userText.trim()?"1px solid rgba(201,169,110,0.4)":"1px solid #2a2a3e", borderRadius:8, padding:"10px 22px", cursor:userText.trim()?"pointer":"not-allowed", color:userText.trim()?"#c9a96e":"#7a6e5f", fontSize:12, fontFamily:"monospace", letterSpacing:2 }}>
+                    GET FEEDBACK
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+          {feedback && (
+            <div style={{ border:"1px solid #2a2a3e", borderRadius:8, overflow:"hidden" }}>
+              <div style={{ background:"rgba(201,169,110,0.08)", borderBottom:"1px solid #2a2a3e", padding:"16px 24px", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+                <span style={{ fontSize:11, letterSpacing:2, fontFamily:"monospace", color:"#c9a96e", textTransform:"uppercase" }}>Examiner Feedback</span>
+                <span style={{ fontSize:20, color:"#c9a96e", fontWeight:700 }}>{feedback.score}/5 — {feedback.band}</span>
+              </div>
+              <div style={{ padding:24 }}>
+                {[["Content",feedback.content],["Grammar",feedback.grammar],["Vocabulary",feedback.vocabulary],["Organisation",feedback.organisation],["Task Achievement",feedback.task_achievement]].map(([label,val]) => val && (
+                  <div key={label} style={{ marginBottom:18 }}>
+                    <div style={{ fontSize:10, letterSpacing:2, color:"#7a6e5f", fontFamily:"monospace", textTransform:"uppercase", marginBottom:6 }}>{label}</div>
+                    <div style={{ fontSize:14, color:"#c0b49e", lineHeight:1.75 }}>{val}</div>
+                  </div>
+                ))}
+                {feedback.improved_excerpt && (
+                  <div style={{ marginTop:8, padding:"16px 20px", background:"rgba(255,255,255,0.02)", border:"1px solid #2a2a3e", borderLeft:"3px solid rgba(201,169,110,0.4)", borderRadius:6 }}>
+                    <div style={{ fontSize:10, letterSpacing:2, color:"#7a6e5f", fontFamily:"monospace", textTransform:"uppercase", marginBottom:8 }}>Improved Excerpt</div>
+                    <div style={{ fontSize:14, color:"#e8e0d0", lineHeight:1.8, fontStyle:"italic" }}>{feedback.improved_excerpt}</div>
+                  </div>
+                )}
+                {feedback.overall_tip && (
+                  <div style={{ marginTop:16, padding:"12px 18px", background:"rgba(100,120,255,0.04)", border:"1px solid rgba(100,120,255,0.15)", borderRadius:6, fontSize:12, color:"#8888cc", fontFamily:"monospace", lineHeight:1.6 }}>💡 {feedback.overall_tip}</div>
+                )}
+                <button onClick={generatePrompt} style={{ marginTop:20, background:"rgba(201,169,110,0.1)", border:"1px solid rgba(201,169,110,0.3)", borderRadius:6, padding:"10px 24px", cursor:"pointer", color:"#c9a96e", fontSize:12, fontFamily:"monospace", letterSpacing:1 }}>NEW PROMPT →</button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── VOCABULARY SECTION ────────────────────────────────────────────────────────
+function VocabularySection({ apiKey }) {
+  const [wordData, setWordData] = useState(() => LS.get("cpe-vocab-words", {}));
+  const [srsData, setSrsData] = useState(() => LS.get("cpe-vocab-srs", {}));
+  const [view, setView] = useState("dashboard");
+  const [addInput, setAddInput] = useState("");
+  const [loadingProgress, setLoadingProgress] = useState({ done:0, total:0 });
+  const [queue, setQueue] = useState([]);
+  const [currentIdx, setCurrentIdx] = useState(0);
+  const [submitted, setSubmitted] = useState(null);
+  const [textVal, setTextVal] = useState("");
+  const [sessionScore, setSessionScore] = useState({ correct:0, total:0 });
+  const [sessionSrsUpdates, setSessionSrsUpdates] = useState({});
+  const [exportText, setExportText] = useState(null);
+  const [importOpen, setImportOpen] = useState(false);
+  const [importText, setImportText] = useState("");
+  const [importError, setImportError] = useState("");
+
+  const saveWords = (data) => { setWordData(data); LS.set("cpe-vocab-words", data); };
+  const saveSrs = (data) => { setSrsData(data); LS.set("cpe-vocab-srs", data); };
+
+  const parseWords = (text) => [...new Set(text.split(/[\n,;]+/).map(w=>w.trim()).filter(Boolean))];
+
+  const handleExport = () => {
+    setExportText(JSON.stringify({ wordData, srsData }, null, 2));
+  };
+
+  const handleImport = (raw) => {
+    try {
+      const parsed = JSON.parse(raw);
+      if (!parsed.wordData) { setImportError("Invalid backup — no wordData found."); return; }
+      saveWords(parsed.wordData || {});
+      saveSrs(parsed.srsData || {});
+      setImportOpen(false); setImportText(""); setImportError("");
+    } catch { setImportError("Could not parse. Make sure you copied the full backup text."); }
+  };
+
+  const handleAddWords = async () => {
+    const newWords = parseWords(addInput).filter(w => !wordData[w]);
+    if (!newWords.length) { setAddInput(""); setView("dashboard"); return; }
+    setView("loading-add");
+    const batches = [];
+    for (let i = 0; i < newWords.length; i += 5) batches.push(newWords.slice(i, i+5));
+    setLoadingProgress({ done:0, total:batches.length });
+    const newData = { ...wordData };
+    for (let i = 0; i < batches.length; i++) {
+      try {
+        const items = await fetchVocabBatch(batches[i], apiKey);
+        items.forEach(item => { if (item?.word) newData[item.word] = item; });
+      } catch {
+        for (const word of batches[i]) {
+          try { const [item] = await fetchVocabBatch([word], apiKey); if (item?.word) newData[item.word] = item; } catch {}
+        }
+      }
+      setLoadingProgress(p => ({ ...p, done:i+1 }));
+    }
+    saveWords(newData);
+    setAddInput(""); setView("dashboard");
+  };
+
+  const buildQueue = (allData, allSrs) => {
+    const dueWords = shuffleArray(Object.keys(allData).filter(w => isDueToday(allSrs[w])));
+    const types = ['mc_def','fillblank','reverse'];
+    return dueWords.map(word => {
+      const d = allData[word];
+      const type = types[Math.floor(Math.random()*types.length)];
+      let options = null, answer = null;
+      if (type==='mc_def') { const r=buildMCOptions_def(word,d.definition,allData); options=r.options; answer=r.answer; }
+      else if (type==='fillblank') { const r=buildMCOptions_fill(d.word,d.distractors); options=r.options; answer=r.answer; }
+      return { word, type, options, answer };
+    });
+  };
+
+  const startSession = () => {
+    const q = buildQueue(wordData, srsData);
+    if (!q.length) return;
+    setQueue(q); setCurrentIdx(0); setSubmitted(null); setTextVal("");
+    setSessionScore({ correct:0, total:0 }); setSessionSrsUpdates({});
+    setView("session");
+  };
+
+  const normalize = s => (s||"").toLowerCase().trim().replace(/\s+/g," ").replace(/[\u2018\u2019']/g,"'");
+  const currentCard = queue[currentIdx];
+  const currentData = currentCard ? wordData[currentCard.word] : null;
+
+  const checkAnswer = (userAnswer) => {
+    if (!currentData || !currentCard) return;
+    const correct = currentCard.type==='reverse'
+      ? normalize(userAnswer)===normalize(currentCard.word)
+      : userAnswer===currentCard.answer;
+    setSessionScore(s => ({ correct:s.correct+(correct?1:0), total:s.total+1 }));
+    setSubmitted({ correct, userAnswer });
+  };
+
+  const handleNext = () => {
+    const word = currentCard.word;
+    const isCorrect = submitted?.correct;
+    const updated = sm2Update(srsData[word], isCorrect?1:0);
+    const newSrsUpdates = { ...sessionSrsUpdates, [word]:updated };
+    setSessionSrsUpdates(newSrsUpdates);
+    // Persist SRS immediately (localStorage is reliable here)
+    saveSrs({ ...srsData, ...newSrsUpdates });
+    setSubmitted(null); setTextVal("");
+    let newQueue = [...queue];
+    if (!isCorrect) {
+      const types = ['mc_def','fillblank','reverse'];
+      const reType = types.filter(t=>t!==currentCard.type)[Math.floor(Math.random()*2)];
+      const d = wordData[word];
+      let opts=null, ans=null;
+      if (reType==='mc_def') { const r=buildMCOptions_def(word,d.definition,wordData); opts=r.options; ans=r.answer; }
+      else if (reType==='fillblank') { const r=buildMCOptions_fill(d.word,d.distractors); opts=r.options; ans=r.answer; }
+      newQueue.splice(Math.min(currentIdx+3,newQueue.length),0,{ word,type:reType,options:opts,answer:ans });
+      setQueue(newQueue);
+    }
+    const next = currentIdx+1;
+    if (next>=newQueue.length) setView("complete");
+    else setCurrentIdx(next);
+  };
+
+  const allWords = Object.keys(wordData);
+  const dueWords = allWords.filter(w => isDueToday(srsData[w]));
+  const learnedWords = allWords.filter(w => srsData[w]?.totalReviews>0);
+  const strugglingWords = allWords.filter(w => (srsData[w]?.lapses||0)>=2);
+
+  // LOADING ADD
+  if (view==="loading-add") {
+    const pct = loadingProgress.total>0 ? Math.round((loadingProgress.done/loadingProgress.total)*100) : 0;
+    return (
+      <div style={{ textAlign:"center", padding:"60px 0" }}>
+        <div style={{ fontSize:28, marginBottom:16, display:"inline-block", animation:"spin 1.2s linear infinite" }}>⟳</div>
+        <div style={{ fontFamily:"monospace", fontSize:12, letterSpacing:2, color:"#7a6e5f", marginBottom:24 }}>GENERATING EXERCISE DATA...</div>
+        <div style={{ maxWidth:280, margin:"0 auto" }}>
+          <div style={{ background:"#1e1e2e", borderRadius:4, height:4, overflow:"hidden" }}>
+            <div style={{ background:"#c9a96e", height:"100%", width:`${pct}%`, transition:"width 0.4s ease", borderRadius:4 }} />
+          </div>
+          <div style={{ fontSize:11, color:"#7a6e5f", fontFamily:"monospace", marginTop:10 }}>{loadingProgress.done}/{loadingProgress.total} batches · {pct}%</div>
+        </div>
+      </div>
+    );
+  }
+
+  // ADD WORDS
+  if (view==="add") {
+    const newWords = parseWords(addInput).filter(w => !wordData[w]);
+    const existing = parseWords(addInput).filter(w => wordData[w]);
+    return (
+      <div>
+        <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:20 }}>
+          <button onClick={() => { setAddInput(""); setView("dashboard"); }} style={{ background:"transparent", border:"none", color:"#7a6e5f", cursor:"pointer", fontSize:18, padding:0 }}>←</button>
+          <span style={{ fontSize:13, color:"#c9a96e", fontFamily:"monospace", letterSpacing:2 }}>ADD WORDS</span>
+        </div>
+        <textarea value={addInput} onChange={e => setAddInput(e.target.value)}
+          placeholder={"ebullient\npernicious\nequivocate\n\nOne per line, or comma-separated."}
+          autoFocus
+          style={{ width:"100%", minHeight:200, background:"rgba(255,255,255,0.03)", border:"1px solid #2a2a3e", borderRadius:8, padding:"16px", color:"#e8e0d0", fontSize:15, lineHeight:1.8, resize:"vertical", outline:"none" }}
+        />
+        <div style={{ marginTop:10, marginBottom:16, minHeight:20 }}>
+          {newWords.length>0 && <span style={{ fontSize:12, color:"#6dc87e", fontFamily:"monospace" }}>+ {newWords.length} new word{newWords.length!==1?"s":""}</span>}
+          {existing.length>0 && <span style={{ fontSize:12, color:"#7a6e5f", fontFamily:"monospace", marginLeft:14 }}>{existing.length} already in list</span>}
+        </div>
+        <div style={{ display:"flex", gap:10 }}>
+          <button onClick={() => { setAddInput(""); setView("dashboard"); }} style={{ background:"transparent", border:"1px solid #2a2a3e", borderRadius:8, padding:"10px 22px", cursor:"pointer", color:"#7a6e5f", fontSize:11, fontFamily:"monospace", letterSpacing:1 }}>CANCEL</button>
+          <button onClick={handleAddWords} disabled={newWords.length===0}
+            style={{ background:newWords.length>0?"rgba(201,169,110,0.12)":"rgba(255,255,255,0.03)", border:newWords.length>0?"1px solid rgba(201,169,110,0.4)":"1px solid #2a2a3e", borderRadius:10, padding:"10px 28px", cursor:newWords.length>0?"pointer":"not-allowed", color:newWords.length>0?"#c9a96e":"#7a6e5f", fontSize:12, fontFamily:"monospace", letterSpacing:2 }}>
+            ADD & GENERATE →
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // COMPLETE
+  if (view==="complete") {
+    const reviewedCount = Object.keys(sessionSrsUpdates).length;
+    const pct = sessionScore.total ? Math.round((sessionScore.correct/sessionScore.total)*100) : 0;
+    return (
+      <div style={{ textAlign:"center", padding:"48px 20px", animation:"fadeIn 0.3s ease" }}>
+        <div style={{ fontSize:40, marginBottom:16 }}>🎓</div>
+        <div style={{ fontSize:18, color:"#f0e8d8", fontWeight:700, marginBottom:8 }}>Session Complete</div>
+        <div style={{ fontSize:13, color:"#9a8e7e", marginBottom:28 }}>{reviewedCount} words reviewed · progress saved</div>
+        <div style={{ display:"flex", gap:16, justifyContent:"center", marginBottom:32, flexWrap:"wrap" }}>
+          {[{ label:"CORRECT",val:`${sessionScore.correct}/${sessionScore.total}`,color:"#6dc87e" },{ label:"ACCURACY",val:`${pct}%`,color:"#c9a96e" },{ label:"REVIEWED",val:`${reviewedCount}`,color:"#6ab0e0" }].map(({ label,val,color }) => (
+            <div key={label} style={{ background:"rgba(255,255,255,0.03)", border:"1px solid #2a2a3e", borderRadius:8, padding:"16px 22px", minWidth:80 }}>
+              <div style={{ fontSize:9, letterSpacing:2, color:"#7a6e5f", fontFamily:"monospace", marginBottom:6 }}>{label}</div>
+              <div style={{ fontSize:20, color, fontWeight:700, fontFamily:"monospace" }}>{val}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{ marginBottom:28, padding:"14px 20px", background:"rgba(255,255,255,0.02)", border:"1px solid #2a2a3e", borderRadius:8, fontSize:12, color:"#9a8e7e", fontFamily:"monospace" }}>
+          {(() => {
+            const remaining = Object.keys(srsData).filter(w=>isDueToday(srsData[w])).length;
+            if (remaining>0) return `${remaining} more word${remaining!==1?"s":""} still due today`;
+            const days = Object.keys(srsData).map(w=>daysUntilDue(srsData[w])).filter(d=>d>0);
+            const minDays = days.length ? Math.min(...days) : null;
+            return minDays ? `Next review in ${minDays} day${minDays!==1?"s":""}` : "All caught up!";
+          })()}
+        </div>
+        <div style={{ display:"flex", gap:10, justifyContent:"center", flexWrap:"wrap" }}>
+          <button onClick={() => setView("dashboard")} style={{ background:"transparent", border:"1px solid #2a2a3e", borderRadius:8, padding:"10px 22px", cursor:"pointer", color:"#7a6e5f", fontSize:11, fontFamily:"monospace", letterSpacing:1 }}>DASHBOARD</button>
+          <button onClick={handleExport} style={{ background:"rgba(106,176,224,0.06)", border:"1px solid rgba(106,176,224,0.2)", borderRadius:8, padding:"10px 18px", cursor:"pointer", color:"#6ab0e0", fontSize:11, fontFamily:"monospace", letterSpacing:1 }}>↓ EXPORT BACKUP</button>
+          {buildQueue(wordData,srsData).length>0 && <button onClick={startSession} style={{ background:"rgba(201,169,110,0.1)", border:"1px solid rgba(201,169,110,0.3)", borderRadius:8, padding:"10px 24px", cursor:"pointer", color:"#c9a96e", fontSize:12, fontFamily:"monospace", letterSpacing:2 }}>CONTINUE →</button>}
+        </div>
+      </div>
+    );
+  }
+
+  // DASHBOARD
+  if (view==="dashboard") {
+    return (
+      <div style={{ animation:"fadeIn 0.3s ease" }}>
+        {/* Export modal */}
+        {exportText && (
+          <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.85)", zIndex:100, display:"flex", alignItems:"center", justifyContent:"center", padding:20 }}>
+            <div style={{ background:"#111118", border:"1px solid #2a2a3e", borderRadius:12, padding:24, width:"100%", maxWidth:520, display:"flex", flexDirection:"column" }}>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
+                <span style={{ fontSize:11, letterSpacing:2, color:"#c9a96e", fontFamily:"monospace" }}>EXPORT BACKUP</span>
+                <button onClick={() => setExportText(null)} style={{ background:"none", border:"none", color:"#7a6e5f", cursor:"pointer", fontSize:18, padding:0 }}>✕</button>
+              </div>
+              <div style={{ fontSize:12, color:"#9a8e7e", marginBottom:10, lineHeight:1.6 }}>
+                Select all <strong style={{ color:"#c0b49e" }}>(Ctrl+A / Cmd+A)</strong> and copy <strong style={{ color:"#c0b49e" }}>(Ctrl+C / Cmd+C)</strong>. Save anywhere. To restore, use Import.
+              </div>
+              <textarea readOnly value={exportText}
+                ref={el => { if(el) { el.focus(); el.select(); } }}
+                style={{ minHeight:200, background:"rgba(255,255,255,0.03)", border:"1px solid rgba(201,169,110,0.3)", borderRadius:8, padding:"12px", color:"#9aae9a", fontSize:11, fontFamily:"monospace", lineHeight:1.5, resize:"vertical", outline:"none" }}
+              />
+              <div style={{ marginTop:8, fontSize:11, color:"#7a6e5f", fontFamily:"monospace", textAlign:"center" }}>Text is already selected — press Ctrl+C (or Cmd+C)</div>
+            </div>
+          </div>
+        )}
+        {/* Import modal */}
+        {importOpen && (
+          <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.85)", zIndex:100, display:"flex", alignItems:"center", justifyContent:"center", padding:20 }}>
+            <div style={{ background:"#111118", border:"1px solid #2a2a3e", borderRadius:12, padding:24, width:"100%", maxWidth:520, display:"flex", flexDirection:"column" }}>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
+                <span style={{ fontSize:11, letterSpacing:2, color:"#c9a96e", fontFamily:"monospace" }}>IMPORT BACKUP</span>
+                <button onClick={() => { setImportOpen(false); setImportText(""); setImportError(""); }} style={{ background:"none", border:"none", color:"#7a6e5f", cursor:"pointer", fontSize:18, padding:0 }}>✕</button>
+              </div>
+              <div style={{ fontSize:12, color:"#9a8e7e", marginBottom:14 }}>Paste your backup text below, then click Restore.</div>
+              <textarea value={importText} onChange={e => { setImportText(e.target.value); setImportError(""); }}
+                placeholder='{"wordData":{...},"srsData":{...}}'
+                autoFocus
+                style={{ minHeight:160, background:"rgba(255,255,255,0.03)", border:"1px solid #2a2a3e", borderRadius:8, padding:"12px", color:"#9aae9a", fontSize:11, fontFamily:"monospace", lineHeight:1.5, resize:"vertical", outline:"none" }}
+              />
+              {importError && <div style={{ fontSize:11, color:"#c86e6e", fontFamily:"monospace", marginTop:8 }}>{importError}</div>}
+              <button onClick={() => handleImport(importText)} disabled={!importText.trim()}
+                style={{ marginTop:14, background:importText.trim()?"rgba(201,169,110,0.12)":"rgba(255,255,255,0.03)", border:importText.trim()?"1px solid rgba(201,169,110,0.4)":"1px solid #2a2a3e", borderRadius:8, padding:"12px", cursor:importText.trim()?"pointer":"not-allowed", color:importText.trim()?"#c9a96e":"#7a6e5f", fontSize:12, fontFamily:"monospace", letterSpacing:2 }}>
+                RESTORE
+              </button>
+            </div>
+          </div>
+        )}
+
+        {allWords.length===0 ? (
+          <div style={{ textAlign:"center", padding:"60px 20px" }}>
+            <div style={{ fontSize:40, marginBottom:16 }}>📚</div>
+            <div style={{ fontSize:15, color:"#9a8e7e", marginBottom:8 }}>No words yet</div>
+            <div style={{ fontSize:12, color:"#7a6e5f", fontFamily:"monospace", marginBottom:32, lineHeight:1.7 }}>Add your vocabulary list, or restore from a backup.</div>
+            <div style={{ display:"flex", gap:10, justifyContent:"center", flexWrap:"wrap" }}>
+              <button onClick={() => setView("add")} style={{ background:"rgba(201,169,110,0.12)", border:"1px solid rgba(201,169,110,0.4)", borderRadius:10, padding:"14px 36px", cursor:"pointer", color:"#c9a96e", fontSize:13, fontFamily:"monospace", letterSpacing:3 }}>ADD WORDS</button>
+              <button onClick={() => setImportOpen(true)} style={{ background:"rgba(255,255,255,0.04)", border:"1px solid #2a2a3e", borderRadius:10, padding:"14px 24px", cursor:"pointer", color:"#7a6e5f", fontSize:13, fontFamily:"monospace", letterSpacing:2 }}>RESTORE BACKUP</button>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:10, marginBottom:24 }}>
+              {[{ label:"TOTAL",val:allWords.length,color:"#c9a96e" },{ label:"DUE TODAY",val:dueWords.length,color:dueWords.length>0?"#c86e6e":"#6dc87e" },{ label:"REVIEWED",val:learnedWords.length,color:"#6dc87e" },{ label:"STRUGGLING",val:strugglingWords.length,color:strugglingWords.length>0?"#c9a96e":"#6dc87e" }].map(({ label,val,color }) => (
+                <div key={label} style={{ background:"rgba(255,255,255,0.03)", border:"1px solid #2a2a3e", borderRadius:8, padding:"14px 10px", textAlign:"center" }}>
+                  <div style={{ fontSize:8, letterSpacing:2, color:"#7a6e5f", fontFamily:"monospace", marginBottom:6 }}>{label}</div>
+                  <div style={{ fontSize:22, color, fontWeight:700, fontFamily:"monospace" }}>{val}</div>
+                </div>
+              ))}
+            </div>
+            {dueWords.length>0 ? (
+              <div style={{ marginBottom:24, padding:"18px 22px", background:"rgba(200,110,110,0.06)", border:"1px solid rgba(200,110,110,0.2)", borderRadius:10, display:"flex", alignItems:"center", justifyContent:"space-between", gap:12 }}>
+                <div>
+                  <div style={{ fontSize:13, color:"#f0e8d8", marginBottom:4 }}><strong>{dueWords.length}</strong> word{dueWords.length!==1?"s":""} due for review today</div>
+                  <div style={{ fontSize:11, color:"#7a6e5f", fontFamily:"monospace" }}>Three exercise types · Progress saved automatically</div>
+                </div>
+                <button onClick={startSession} style={{ background:"rgba(201,169,110,0.14)", border:"1px solid rgba(201,169,110,0.45)", borderRadius:8, padding:"12px 24px", cursor:"pointer", color:"#c9a96e", fontSize:12, fontFamily:"monospace", letterSpacing:2, whiteSpace:"nowrap", flexShrink:0 }}>STUDY NOW →</button>
+              </div>
+            ) : (
+              <div style={{ marginBottom:24, padding:"18px 22px", background:"rgba(80,200,120,0.04)", border:"1px solid rgba(80,200,120,0.2)", borderRadius:10, textAlign:"center" }}>
+                <div style={{ fontSize:14, color:"#6dc87e", marginBottom:4 }}>✓ All caught up for today!</div>
+                <div style={{ fontSize:11, color:"#7a6e5f", fontFamily:"monospace" }}>
+                  {(() => { const days=Object.keys(srsData).map(w=>daysUntilDue(srsData[w])).filter(d=>d>0); const m=days.length?Math.min(...days):null; return m?`Next review in ${m} day${m!==1?"s":""}`:null; })()}
+                </div>
+              </div>
+            )}
+            <div style={{ marginBottom:20 }}>
+              <div style={{ fontSize:10, letterSpacing:2, color:"#7a6e5f", fontFamily:"monospace", marginBottom:12 }}>WORD LIST</div>
+              <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+                {[...dueWords, ...allWords.filter(w=>!isDueToday(srsData[w]))].map(word => {
+                  const s = srsData[word];
+                  const due = isDueToday(s);
+                  const days = daysUntilDue(s);
+                  const reviewed = s?.totalReviews>0;
+                  return (
+                    <div key={word} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"10px 14px", background:"rgba(255,255,255,0.02)", border:`1px solid ${due?"rgba(200,110,110,0.25)":"#2a2a3e"}`, borderRadius:6 }}>
+                      <span style={{ fontSize:14, color:"#e8e0d0" }}>{word}</span>
+                      <div style={{ display:"flex", gap:8, alignItems:"center" }}>
+                        {(s?.lapses||0)>=2 && <span style={{ fontSize:9, color:"#c9a96e", fontFamily:"monospace" }}>⚠ weak</span>}
+                        {due ? <span style={{ fontSize:9, background:"rgba(200,110,110,0.12)", border:"1px solid rgba(200,110,110,0.3)", borderRadius:10, padding:"2px 7px", color:"#c86e6e", fontFamily:"monospace" }}>DUE</span>
+                          : reviewed ? <span style={{ fontSize:9, color:"#7a6e5f", fontFamily:"monospace" }}>in {days}d</span>
+                          : <span style={{ fontSize:9, color:"#7a6e5f", fontFamily:"monospace" }}>new</span>}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+            <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+              <button onClick={() => setView("add")} style={{ flex:1, background:"rgba(255,255,255,0.03)", border:"1px dashed #2a2a3e", borderRadius:8, padding:"12px", cursor:"pointer", color:"#7a6e5f", fontSize:12, fontFamily:"monospace", letterSpacing:2 }}>+ ADD WORDS</button>
+              <button onClick={handleExport} style={{ background:"rgba(106,176,224,0.06)", border:"1px solid rgba(106,176,224,0.2)", borderRadius:8, padding:"12px 18px", cursor:"pointer", color:"#6ab0e0", fontSize:11, fontFamily:"monospace", letterSpacing:1 }}>↓ EXPORT</button>
+              <button onClick={() => setImportOpen(true)} style={{ background:"rgba(106,176,224,0.06)", border:"1px solid rgba(106,176,224,0.2)", borderRadius:8, padding:"12px 18px", cursor:"pointer", color:"#6ab0e0", fontSize:11, fontFamily:"monospace", letterSpacing:1 }}>↑ IMPORT</button>
+            </div>
+          </>
+        )}
+      </div>
+    );
+  }
+
+  // SESSION
+  if (!currentCard || !currentData) return null;
+  const isMC = currentCard.type!=='reverse';
+  const progressPct = Math.round((currentIdx/queue.length)*100);
+  const scorePct = sessionScore.total ? Math.round((sessionScore.correct/sessionScore.total)*100) : null;
+  const typeLabels = { mc_def:"DEFINITION MC", fillblank:"FILL IN THE BLANK", reverse:"REVERSE RECALL" };
+  const typeHints = { mc_def:`What does "${currentCard.word}" mean?`, fillblank:"Choose the word that completes the sentence:", reverse:"Type the word being described:" };
+
+  return (
+    <div style={{ animation:"fadeIn 0.3s ease" }}>
+      <div style={{ marginBottom:20 }}>
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
+          <span style={{ fontSize:10, color:"#7a6e5f", fontFamily:"monospace" }}>{currentIdx+1} / {queue.length}</span>
+          {scorePct!==null && <span style={{ fontSize:11, color:scorePct>=70?"#6dc87e":"#c9a96e", fontFamily:"monospace" }}>{sessionScore.correct}/{sessionScore.total} correct</span>}
+        </div>
+        <div style={{ background:"#1e1e2e", borderRadius:4, height:3, overflow:"hidden" }}>
+          <div style={{ background:"#c9a96e", height:"100%", width:`${progressPct}%`, transition:"width 0.3s ease" }} />
+        </div>
+      </div>
+      <div style={{ display:"flex", gap:8, marginBottom:18 }}>
+        <span style={{ background:"rgba(201,169,110,0.08)", border:"1px solid rgba(201,169,110,0.3)", borderRadius:4, padding:"3px 10px", fontSize:10, letterSpacing:2, color:"#c9a96e", fontFamily:"monospace" }}>{typeLabels[currentCard.type]}</span>
+        {currentData.register && <span style={{ background:"rgba(255,255,255,0.03)", border:"1px solid #2a2a3e", borderRadius:4, padding:"3px 10px", fontSize:10, color:"#7a6e5f", fontFamily:"monospace", textTransform:"uppercase" }}>{currentData.register}</span>}
+      </div>
+      <p style={{ margin:"0 0 18px", fontSize:13, color:"#9a8e7e", fontStyle:"italic" }}>{typeHints[currentCard.type]}</p>
+      {currentCard.type==='mc_def' && (
+        <div style={{ background:"rgba(255,255,255,0.025)", border:"1px solid #2a2a3e", borderLeft:"3px solid rgba(201,169,110,0.4)", borderRadius:8, padding:"28px", marginBottom:20, textAlign:"center" }}>
+          <div style={{ fontSize:32, fontWeight:700, color:"#f0e8d8" }}>{currentCard.word}</div>
+          {currentData.part_of_speech && <div style={{ fontSize:11, color:"#7a6e5f", fontFamily:"monospace", marginTop:8, fontStyle:"italic" }}>{currentData.part_of_speech}</div>}
+        </div>
+      )}
+      {currentCard.type==='fillblank' && (
+        <div style={{ background:"rgba(255,255,255,0.025)", border:"1px solid #2a2a3e", borderLeft:"3px solid rgba(201,169,110,0.35)", borderRadius:8, padding:"22px 26px", marginBottom:20, fontSize:17, lineHeight:2, color:"#e8e0d0" }}>
+          {(() => {
+            const parts = (currentData.example||"").split("_____");
+            if (parts.length<2) return <span>{currentData.example}</span>;
+            if (submitted) return <span>{parts[0]}<span style={{ color:submitted.correct?"#6dc87e":"#c86e6e", fontWeight:700 }}>{currentCard.word}</span>{parts[1]}</span>;
+            return <span>{parts[0]}<span style={{ display:"inline-block", minWidth:100, borderBottom:"2px solid rgba(201,169,110,0.5)", margin:"0 4px" }}>&nbsp;</span>{parts[1]}</span>;
+          })()}
+        </div>
+      )}
+      {currentCard.type==='reverse' && (
+        <div style={{ background:"rgba(255,255,255,0.025)", border:"1px solid #2a2a3e", borderLeft:"3px solid rgba(201,169,110,0.35)", borderRadius:8, padding:"22px 26px", marginBottom:20 }}>
+          <div style={{ fontSize:16, lineHeight:1.9, color:"#e8e0d0", marginBottom:currentData.synonyms?.length?14:0 }}>{currentData.definition}</div>
+          {currentData.synonyms?.length>0 && (
+            <div style={{ display:"flex", gap:6, flexWrap:"wrap", alignItems:"center" }}>
+              <span style={{ fontSize:9, color:"#7a6e5f", fontFamily:"monospace", letterSpacing:1 }}>SYNONYMS</span>
+              {currentData.synonyms.map(s => <span key={s} style={{ fontSize:12, color:"#9a8e7e", background:"rgba(255,255,255,0.04)", border:"1px solid #2a2a3e", borderRadius:4, padding:"2px 8px", fontFamily:"monospace" }}>{s}</span>)}
+            </div>
+          )}
+        </div>
+      )}
+      {!submitted && (
+        isMC ? (
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:16 }}>
+            {Object.entries(currentCard.options||{}).map(([letter,text]) => (
+              <button key={letter} onClick={() => checkAnswer(letter)}
+                style={{ background:"rgba(255,255,255,0.03)", border:"1px solid #2a2a3e", borderRadius:8, padding:"14px 16px", cursor:"pointer", color:"#e8e0d0", fontSize:currentCard.type==='mc_def'?12.5:15, textAlign:"left", display:"flex", gap:10, alignItems:"flex-start", lineHeight:1.5 }}
+                onMouseEnter={e => { e.currentTarget.style.background="rgba(201,169,110,0.1)"; e.currentTarget.style.borderColor="rgba(201,169,110,0.3)"; }}
+                onMouseLeave={e => { e.currentTarget.style.background="rgba(255,255,255,0.03)"; e.currentTarget.style.borderColor="#2a2a3e"; }}>
+                <span style={{ color:"#c9a96e", fontFamily:"monospace", fontWeight:700, minWidth:20, flexShrink:0 }}>{letter}</span>
+                <span>{text}</span>
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div style={{ display:"flex", gap:10 }}>
+            <input value={textVal} onChange={e => setTextVal(e.target.value)}
+              onKeyDown={e => e.key==="Enter" && textVal.trim() && checkAnswer(textVal.trim())}
+              placeholder="Type the word..." autoFocus
+              style={{ flex:1, background:"rgba(255,255,255,0.03)", border:"1px solid #2a2a3e", borderRadius:8, padding:"13px 18px", color:"#e8e0d0", fontSize:15, outline:"none" }}
+            />
+            <button onClick={() => textVal.trim() && checkAnswer(textVal.trim())}
+              style={{ background:"rgba(201,169,110,0.12)", border:"1px solid rgba(201,169,110,0.35)", borderRadius:8, padding:"13px 22px", cursor:"pointer", color:"#c9a96e", fontSize:12, fontFamily:"monospace", letterSpacing:2 }}>CHECK</button>
+          </div>
+        )
+      )}
+      {submitted && (
+        <div style={{ animation:"fadeIn 0.2s ease" }}>
+          <div style={{ background:submitted.correct?"rgba(80,200,120,0.06)":"rgba(200,80,80,0.06)", border:`1px solid ${submitted.correct?"rgba(80,200,120,0.25)":"rgba(200,80,80,0.25)"}`, borderRadius:8, padding:"18px 22px", marginBottom:14 }}>
+            <div style={{ fontSize:12, fontFamily:"monospace", letterSpacing:2, color:submitted.correct?"#6dc87e":"#c86e6e", marginBottom:8 }}>{submitted.correct?"✓  CORRECT":"✗  INCORRECT"}</div>
+            <div style={{ display:"flex", alignItems:"baseline", gap:8 }}>
+              <span style={{ fontSize:12, color:"#7a6e5f", fontFamily:"monospace" }}>WORD:</span>
+              <span style={{ color:"#c9a96e", fontWeight:700, fontSize:18 }}>{currentCard.word}</span>
+              {currentData.part_of_speech && <span style={{ fontSize:11, color:"#7a6e5f", fontFamily:"monospace", fontStyle:"italic" }}>{currentData.part_of_speech}</span>}
+            </div>
+            {submitted.correct && <div style={{ fontSize:11, color:"#7a6e5f", fontFamily:"monospace", marginTop:6 }}>Next review in ~{sm2Update(srsData[currentCard.word],1).interval} day{sm2Update(srsData[currentCard.word],1).interval!==1?"s":""}</div>}
+          </div>
+          <div style={{ marginBottom:12, padding:"16px 20px", background:"rgba(255,255,255,0.02)", border:"1px solid #2a2a3e", borderRadius:8 }}>
+            <div style={{ fontSize:10, letterSpacing:2, color:"#7a6e5f", fontFamily:"monospace", marginBottom:6 }}>DEFINITION</div>
+            <div style={{ fontSize:13.5, color:"#c0b49e", lineHeight:1.75, marginBottom:currentData.example?14:0 }}>{currentData.definition}</div>
+            {currentData.example && <>
+              <div style={{ fontSize:10, letterSpacing:2, color:"#7a6e5f", fontFamily:"monospace", marginBottom:6 }}>EXAMPLE</div>
+              <div style={{ fontSize:13, color:"#9a8e7e", lineHeight:1.7, fontStyle:"italic" }}>{currentData.example.replace("_____",`[${currentCard.word}]`)}</div>
+            </>}
+          </div>
+          {!submitted.correct && <div style={{ marginBottom:12, padding:"10px 16px", background:"rgba(100,120,255,0.04)", border:"1px solid rgba(100,120,255,0.15)", borderRadius:6, fontSize:12, color:"#8888cc", fontFamily:"monospace" }}>↩ Will come back for another try. Review scheduled for tomorrow.</div>}
+          <button onClick={handleNext} style={{ background:"rgba(201,169,110,0.1)", border:"1px solid rgba(201,169,110,0.3)", borderRadius:8, padding:"12px 28px", cursor:"pointer", color:"#c9a96e", fontSize:12, fontFamily:"monospace", letterSpacing:2 }}>NEXT →</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── USE OF ENGLISH SECTION ────────────────────────────────────────────────────
+function UoESection({ apiKey }) {
+  const [selectedType, setSelectedType] = useState("random");
+  const [exercise, setExercise] = useState(null);
+  const [exerciseId, setExerciseId] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [score, setScore] = useState({ correct:0, total:0 });
+  const [history, setHistory] = useState([]);
+  const queues = useRef({});
+
+  const popOrFetch = async (taskType) => {
+    if (taskType==="key_word_transformation") {
+      if (!queues.current.__kwt_pool || queues.current.__kwt_pool.length===0) queues.current.__kwt_pool = shuffleArray(KWT_BANK);
+      return queues.current.__kwt_pool.shift();
+    }
+    const q = queues.current[taskType] || [];
+    if (q.length>0) {
+      const next = q.shift();
+      queues.current[taskType] = q;
+      if (q.length<2) fetchBatch(taskType, apiKey).then(batch => { queues.current[taskType] = [...(queues.current[taskType]||[]),...batch]; }).catch(()=>{});
+      return next;
+    }
+    const batch = await fetchBatch(taskType, apiKey);
+    queues.current[taskType] = batch.slice(1);
+    return batch[0];
+  };
+
+  const generate = async (type) => {
+    setLoading(true); setExercise(null); setError(null);
+    const types = TASK_TYPES.map(t=>t.id);
+    const taskType = type==="random" ? types[Math.floor(Math.random()*types.length)] : type;
+    try { const data = await popOrFetch(taskType); setExercise(data); setExerciseId(id=>id+1); }
+    catch(e) { setError(e.message); }
+    setLoading(false);
+  };
+
+  const handleNext = (wasCorrect) => {
+    setScore(s => ({ correct:s.correct+(wasCorrect?1:0), total:s.total+1 }));
+    setHistory(h => [...h, { type:exercise?.task_type, difficulty:exercise?.difficulty, correct:wasCorrect }]);
+    generate(selectedType);
+  };
+
+  const pct = score.total ? Math.round((score.correct/score.total)*100) : null;
+
+  return (
+    <div>
+      <div style={{ display:"flex", gap:5, marginBottom:16, overflowX:"auto", paddingBottom:4, WebkitOverflowScrolling:"touch" }}>
+        {[{ id:"random",label:"ALL TYPES" },...TASK_TYPES.map(t=>({ id:t.id,label:t.label.toUpperCase() }))].map(t => (
+          <button key={t.id} onClick={() => setSelectedType(t.id)}
+            style={{ background:selectedType===t.id?"rgba(201,169,110,0.14)":"rgba(255,255,255,0.03)", border:selectedType===t.id?"1px solid rgba(201,169,110,0.4)":"1px solid #2a2a3e", borderRadius:6, padding:"5px 10px", cursor:"pointer", color:selectedType===t.id?"#c9a96e":"#7a6e5f", fontSize:10, fontFamily:"monospace", letterSpacing:0.5, whiteSpace:"nowrap", flexShrink:0 }}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+      {score.total>0 && (
+        <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:16, padding:"10px 16px", background:"rgba(255,255,255,0.02)", border:"1px solid #2a2a3e", borderRadius:8 }}>
+          <span style={{ fontSize:12, color:"#c9a96e", fontFamily:"monospace" }}>{score.correct}/{score.total}</span>
+          <div style={{ flex:1, background:"#1e1e2e", borderRadius:4, height:4 }}>
+            <div style={{ background:pct>=70?"#6dc87e":pct>=50?"#c9a96e":"#c86e6e", height:"100%", width:`${pct}%`, borderRadius:4, transition:"width 0.3s" }} />
+          </div>
+          <span style={{ fontSize:12, color:"#7a6e5f", fontFamily:"monospace" }}>{pct}%</span>
+        </div>
+      )}
+      {!exercise && !loading && !error && (
+        <div style={{ textAlign:"center", padding:"60px 0" }}>
+          <div style={{ fontSize:48, marginBottom:20 }}>⚙️</div>
+          <div style={{ fontSize:15, color:"#9a8e7e", marginBottom:8 }}>Ready to practise Use of English?</div>
+          <div style={{ fontSize:12, color:"#7a6e5f", fontFamily:"monospace", marginBottom:32 }}>B2–C2 mixed difficulty · Instant feedback · Detailed explanations</div>
+          <button onClick={() => generate(selectedType)} style={{ background:"rgba(201,169,110,0.12)", border:"1px solid rgba(201,169,110,0.4)", borderRadius:10, padding:"14px 36px", cursor:"pointer", color:"#c9a96e", fontSize:13, fontFamily:"monospace", letterSpacing:3 }}>START PRACTISING</button>
+        </div>
+      )}
+      {loading && <Spinner text="GENERATING EXERCISE..." />}
+      {error && <ErrorBox msg={error} onRetry={() => generate(selectedType)} />}
+      {exercise && !loading && <UoECard key={exerciseId} exercise={exercise} onNext={handleNext} />}
+      {history.length>0 && (
+        <div style={{ marginTop:36, paddingTop:20, borderTop:"1px solid #1e1e2e" }}>
+          <div style={{ fontSize:10, letterSpacing:2, color:"#7a6e5f", fontFamily:"monospace", marginBottom:10 }}>SESSION HISTORY</div>
+          <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>
+            {history.map((h,i) => <div key={i} style={{ width:10, height:10, borderRadius:"50%", background:h.correct?"#6dc87e":"#c86e6e", opacity:0.7 }} />)}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── MAIN APP ──────────────────────────────────────────────────────────────────
+function App() {
+  const [apiKey, setApiKey] = useState(() => LS.get("cpe-api-key", null));
+  const [activeSection, setActiveSection] = useState("uoe");
+
+  if (!apiKey) return <ApiKeyScreen onSave={k => { LS.set("cpe-api-key",k); setApiKey(k); }} />;
+
+  return (
+    <div style={{ height:"100vh", display:"flex", flexDirection:"column", background:"linear-gradient(160deg,#0c0c14 0%,#111118 60%,#0c0c14 100%)", overflow:"hidden" }}>
+      {/* Header */}
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"10px 14px", borderBottom:"1px solid rgba(255,255,255,0.07)", background:"rgba(0,0,0,0.3)", flexShrink:0, gap:8, minHeight:52 }}>
+        <div style={{ flexShrink:0 }}>
+          <div style={{ fontSize:8, letterSpacing:3, color:"#7a6e5f", fontFamily:"monospace", textTransform:"uppercase" }}>Cambridge C2</div>
+          <div style={{ fontSize:14, fontWeight:700, color:"#f0e8d8", marginTop:1 }}>CPE <span style={{ color:"#c9a96e" }}>Practice</span></div>
+        </div>
+        <div style={{ display:"flex", gap:5, overflowX:"auto" }}>
+          {[{ id:"uoe",label:"Use of English" },{ id:"vocabulary",label:"Vocabulary" },{ id:"writing",label:"Writing" }].map(s => (
+            <button key={s.id} onClick={() => setActiveSection(s.id)}
+              style={{ background:activeSection===s.id?"rgba(201,169,110,0.14)":"rgba(255,255,255,0.03)", border:activeSection===s.id?"1px solid rgba(201,169,110,0.4)":"1px solid #2a2a3e", borderRadius:6, padding:"6px 10px", cursor:"pointer", color:activeSection===s.id?"#c9a96e":"#7a6e5f", fontSize:11, fontFamily:"monospace", letterSpacing:0.5, whiteSpace:"nowrap" }}>
+              {s.label}
+            </button>
+          ))}
+        </div>
+        <button onClick={() => { if (confirm("Remove API key?")) { LS.set("cpe-api-key",null); setApiKey(null); } }}
+          style={{ background:"transparent", border:"none", color:"#3a3a5e", cursor:"pointer", fontSize:11, fontFamily:"monospace", flexShrink:0 }} title="Change API key">⚙</button>
+      </div>
+      {/* Content */}
+      <div style={{ flex:1, overflowY:"auto", WebkitOverflowScrolling:"touch" }}>
+        <div style={{ maxWidth:680, margin:"0 auto", padding:"16px 12px 120px" }}>
+          {activeSection==="uoe" && <UoESection apiKey={apiKey} />}
+          {activeSection==="vocabulary" && <VocabularySection apiKey={apiKey} />}
+          {activeSection==="writing" && <WritingSection apiKey={apiKey} />}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.render(<App />, document.getElementById('root'));
+</script>
+</body>
+</html>
