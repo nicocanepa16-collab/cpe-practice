@@ -31,6 +31,186 @@ const LS = {
 
 // ── KWT BANK ──────────────────────────────────────────────────────────────────
 const KWT_BANK = [
+ {
+    task_type: "key_word_transformation", difficulty: "C2",
+    instructions: "Complete the second sentence so that it has a similar meaning to the first, using the word given. Use between 3 and 8 words including the key word.",
+    original_sentence: "John had no previous experience, so nobody thought that he could win the singing competition, but he did.",
+    key_word: "ODDS", sentence_start: "Against", sentence_end: "first place in the singing competition.",
+    answer: "all the odds, John took",
+    explanation: "'Against all the odds' means achieving something despite it being very unlikely. 'Take first place' is synonymous with winning.",
+    distractor_notes: "Don't write 'Against all odds' missing the article 'the', as Cambridge often strictly requires it in this specific idiom format."
+  },
+  {
+    task_type: "key_word_transformation", difficulty: "C2",
+    instructions: "Complete the second sentence so that it has a similar meaning to the first, using the word given. Use between 3 and 8 words including the key word.",
+    original_sentence: "You have to arrive early at the airport, otherwise you may miss your flight.",
+    key_word: "RESULT", sentence_start: "You have to arrive early at the airport. Failure", sentence_end: "missing your flight.",
+    answer: "to do so may result in",
+    explanation: "'Failure to do so' is a formal way to say 'if you don't do this'. 'Result in' means to cause something to happen.",
+    distractor_notes: "Remember the preposition 'in' after result. 'Result to' is incorrect."
+  },
+  {
+    task_type: "key_word_transformation", difficulty: "C2",
+    instructions: "Complete the second sentence so that it has a similar meaning to the first, using the word given. Use between 3 and 8 words including the key word.",
+    original_sentence: "Unlike his brother, he is certainly very intelligent.",
+    key_word: "SO", sentence_start: "He is very intelligent. Certainly,", sentence_end: "his brother.",
+    answer: "more so than",
+    explanation: "'More so than' is used to compare a previously mentioned adjective (intelligent) between two subjects without repeating the adjective.",
+    distractor_notes: "Avoid repeating 'intelligent'. The word 'so' replaces it."
+  },
+  {
+    task_type: "key_word_transformation", difficulty: "C2",
+    instructions: "Complete the second sentence so that it has a similar meaning to the first, using the word given. Use between 3 and 8 words including the key word.",
+    original_sentence: "This is not a very popular restaurant, so there are rarely long queues.",
+    key_word: "OCCURRENCE", sentence_start: "This restaurant is not very popular and long queues", sentence_end: ".",
+    answer: "are a rare occurrence",
+    explanation: "'A rare occurrence' is a C2-level collocation meaning something that happens very infrequently.",
+    distractor_notes: "Don't forget the article 'a' before 'rare occurrence'."
+  },
+  {
+    task_type: "key_word_transformation", difficulty: "C2",
+    instructions: "Complete the second sentence so that it has a similar meaning to the first, using the word given. Use between 3 and 8 words including the key word.",
+    original_sentence: "In Japan, slurping loudly while eating your noodles is not considered impolite, but rather a sign of appreciation.",
+    key_word: "DEEMED", sentence_start: "In Japan,", sentence_end: "manners to slurp loudly while eating your noodles, but rather a sign of appreciation.",
+    answer: "it is not deemed bad",
+    explanation: "'Deem' is a formal synonym for consider or judge. 'Bad manners' equates to 'impolite'.",
+    distractor_notes: "'Deemed as' is a common mistake; 'deemed' is followed directly by the adjective/noun."
+  },
+  {
+    task_type: "key_word_transformation", difficulty: "C2",
+    instructions: "Complete the second sentence so that it has a similar meaning to the first, using the word given. Use between 3 and 8 words including the key word.",
+    original_sentence: "They made a mistake, but we should take into account their lack of experience and not judge them too severely.",
+    key_word: "ALLOWANCES", sentence_start: "They made a mistake, but we should", sentence_end: "their lack of experience.",
+    answer: "make allowances for",
+    explanation: "'Make allowances for' means to take special circumstances into consideration before judging someone.",
+    distractor_notes: "The collocation is 'make allowances', not 'take allowances'."
+  },
+  {
+    task_type: "key_word_transformation", difficulty: "C2",
+    instructions: "Complete the second sentence so that it has a similar meaning to the first, using the word given. Use between 3 and 8 words including the key word.",
+    original_sentence: "The government underestimates how much the problem of staff shortages affect the UK's healthcare system.",
+    key_word: "EXTENT", sentence_start: "The government underestimates", sentence_end: "problem of staff shortages in the UK's healthcare system.",
+    answer: "the extent of the",
+    explanation: "'The extent of' means the size, scale, or degree of something.",
+    distractor_notes: "Ensure the article 'the' is used correctly: 'the extent of the'."
+  },
+  {
+    task_type: "key_word_transformation", difficulty: "C2",
+    instructions: "Complete the second sentence so that it has a similar meaning to the first, using the word given. Use between 3 and 8 words including the key word.",
+    original_sentence: "It is rare for a 15-year-old to be self-disciplined.",
+    key_word: "ATTRIBUTE", sentence_start: "Self-discipline", sentence_end: "in a 15-year-old.",
+    answer: "is a rare attribute",
+    explanation: "'Attribute' is a formal noun for a quality or feature regarded as a characteristic or inherent part of someone.",
+    distractor_notes: "Needs the verb 'is' and article 'a' to be grammatically complete."
+  },
+  {
+    task_type: "key_word_transformation", difficulty: "C2",
+    instructions: "Complete the second sentence so that it has a similar meaning to the first, using the word given. Use between 3 and 8 words including the key word.",
+    original_sentence: "It is difficult to find a cheap and reliable second-hand car these days.",
+    key_word: "BY", sentence_start: "A cheap and reliable second-hand car", sentence_end: "these days.",
+    answer: "is hard to come by",
+    explanation: "The phrasal verb 'come by' means to find or manage to get something, especially something rare or difficult to find.",
+    distractor_notes: "'Difficult to come by' is also perfectly acceptable."
+  },
+  {
+    task_type: "key_word_transformation", difficulty: "C2",
+    instructions: "Complete the second sentence so that it has a similar meaning to the first, using the word given. Use between 3 and 8 words including the key word.",
+    original_sentence: "Many years of high stress at work resulted in his health deteriorating.",
+    key_word: "TOLL", sentence_start: "Many years of high stress at work", sentence_end: "health.",
+    answer: "took a toll on his",
+    explanation: "'Take a toll on' means to cause damage, suffering, or a negative effect over time.",
+    distractor_notes: "The preposition must be 'on', not 'in' or 'over'."
+  },
+  {
+    task_type: "key_word_transformation", difficulty: "C2",
+    instructions: "Complete the second sentence so that it has a similar meaning to the first, using the word given. Use between 3 and 8 words including the key word.",
+    original_sentence: "There have been rumours of a takeover of a small company in the London area.",
+    key_word: "TALK", sentence_start: "There", sentence_end: "over a small company in the London area.",
+    answer: "has been talk of taking",
+    explanation: "'Talk of' is used to indicate rumours or discussions about a possibility. 'Taking over' replaces 'a takeover'.",
+    distractor_notes: "Watch out for verb agreement: 'There HAS been talk', not 'have been talk'."
+  },
+  {
+    task_type: "key_word_transformation", difficulty: "C2",
+    instructions: "Complete the second sentence so that it has a similar meaning to the first, using the word given. Use between 3 and 8 words including the key word.",
+    original_sentence: "Most shops bring prices down before Christmas in an attempt to boost sales.",
+    key_word: "BID", sentence_start: "", sentence_end: "sales, most shops cut prices before Christmas.",
+    answer: "In a bid to boost",
+    explanation: "'In a bid to' is a very common journalistic phrase meaning 'in an attempt to'.",
+    distractor_notes: "Remember the infinitive 'to' after bid."
+  },
+  {
+    task_type: "key_word_transformation", difficulty: "C2",
+    instructions: "Complete the second sentence so that it has a similar meaning to the first, using the word given. Use between 3 and 8 words including the key word.",
+    original_sentence: "I signed up for BJJ classes, but I soon realized that the advanced class was too much for me, so I moved to the intermediate class.",
+    key_word: "DEPTH", sentence_start: "Soon after signing up for BJJ classes, I realized", sentence_end: "advanced class, so I moved to the intermediate class.",
+    answer: "that I was out of my depth in the",
+    explanation: "To be 'out of your depth' means to be in a situation that is too difficult for you to handle.",
+    distractor_notes: "The 'that' is optional but often expected for flow. The key idiom is 'out of my depth'."
+  },
+  {
+    task_type: "key_word_transformation", difficulty: "C2",
+    instructions: "Complete the second sentence so that it has a similar meaning to the first, using the word given. Use between 3 and 8 words including the key word.",
+    original_sentence: "Checking parts for defects and writing reports comes with the job of working in quality control.",
+    key_word: "PARCEL", sentence_start: "Checking parts for defects and writing reports", sentence_end: "working in quality control.",
+    answer: "is part and parcel of",
+    explanation: "'Part and parcel of' is an idiom meaning an essential or unavoidable part of something.",
+    distractor_notes: "Don't use 'a part and parcel', drop the article."
+  },
+  {
+    task_type: "key_word_transformation", difficulty: "C2",
+    instructions: "Complete the second sentence so that it has a similar meaning to the first, using the word given. Use between 3 and 8 words including the key word.",
+    original_sentence: "At first glance, his suggestion for improving our service seems to make sense.",
+    key_word: "FACE", sentence_start: "On", sentence_end: "improvements in our service makes sense.",
+    answer: "the face of it, his suggestion for making",
+    explanation: "'On the face of it' means 'at first glance' or 'superficially'. 'Improving' transforms to 'making improvements'.",
+    distractor_notes: "Be careful not to confuse 'on the face of it' with 'in the face of' (which means despite)."
+  },
+  {
+    task_type: "key_word_transformation", difficulty: "C2",
+    instructions: "Complete the second sentence so that it has a similar meaning to the first, using the word given. Use between 3 and 8 words including the key word.",
+    original_sentence: "Surprisingly, Susan was not offended at all when Sarah insulted her.",
+    key_word: "ENOUGH", sentence_start: "Oddly", sentence_end: "Sarah's insults.",
+    answer: "enough, Susan took no offence at",
+    explanation: "'Oddly enough' or 'Surprisingly enough' are discourse markers. 'Take offence at' means to be offended by.",
+    distractor_notes: "'Was not offended by' is also valid, but 'took no offence at' is a stronger C2 structural transformation."
+  },
+  {
+    task_type: "key_word_transformation", difficulty: "C2",
+    instructions: "Complete the second sentence so that it has a similar meaning to the first, using the word given. Use between 3 and 8 words including the key word.",
+    original_sentence: "In all probability, the merger between Peugeot PSA and Fiat Chrysler will lead to job losses.",
+    key_word: "LIKELIHOOD", sentence_start: "There", sentence_end: "the merger between Peugeot PSA and Fiat Chrysler will lead to job losses.",
+    answer: "is a high likelihood that",
+    explanation: "'There is a high/strong likelihood that' replaces 'In all probability'.",
+    distractor_notes: "'Is every likelihood that' is another excellent C2 alternative often seen in answer keys."
+  },
+  {
+    task_type: "key_word_transformation", difficulty: "C2",
+    instructions: "Complete the second sentence so that it has a similar meaning to the first, using the word given. Use between 3 and 8 words including the key word.",
+    original_sentence: "\"I was in the middle of washing my hair when you called me\". She said.",
+    key_word: "PROCESS", sentence_start: "She said", sentence_end: "washing her hair when I called her.",
+    answer: "that she had been in the process of",
+    explanation: "To be 'in the process of' doing something means to be actively doing it. Note the backshift in reported speech: 'was' becomes 'had been'.",
+    distractor_notes: "Forgetting to backshift the tense ('was in the process') is an automatic fail for this question."
+  },
+  {
+    task_type: "key_word_transformation", difficulty: "C2",
+    instructions: "Complete the second sentence so that it has a similar meaning to the first, using the word given. Use between 3 and 8 words including the key word.",
+    original_sentence: "I didn't known that you were ill, otherwise I would have substituted for you.",
+    key_word: "HAD", sentence_start: "I would have filled", sentence_end: "that you were ill.",
+    answer: "in for you, had I known",
+    explanation: "Third conditional inversion ('had I known' instead of 'if I had known') paired with the phrasal verb 'fill in for' (to substitute).",
+    distractor_notes: "Don't use 'if' when using the inverted 'had I known' structure."
+  },
+  {
+    task_type: "key_word_transformation", difficulty: "C2",
+    instructions: "Complete the second sentence so that it has a similar meaning to the first, using the word given. Use between 3 and 8 words including the key word.",
+    original_sentence: "They accused him of deceiving people into giving him their money.",
+    key_word: "DECEPTION", sentence_start: "He was accused of", sentence_end: ".",
+    answer: "obtaining money from people by deception",
+    explanation: "'Obtaining money by deception' is a fixed legal/formal phrase for fraud.",
+    distractor_notes: "'Getting money' is also accepted, but 'obtaining' is preferred at this level."
+  }
   { task_type:"key_word_transformation",difficulty:"C2",instructions:"Complete the second sentence so that it has a similar meaning to the first, using the word given. Use between 3 and 8 words including the key word.",original_sentence:"After being fired from his job, John felt he needed to think about his situation.",key_word:"STOCK",sentence_start:"After being fired from his job, John felt he needed to",sentence_end:"his situation.",answer:"take stock of",explanation:"'Take stock of' is a fixed idiom meaning to carefully assess or reflect on a situation.",distractor_notes:"Common mistakes: 'make stock of' or 'take stock on' — neither is idiomatic." },
   { task_type:"key_word_transformation",difficulty:"C2",instructions:"Complete the second sentence so that it has a similar meaning to the first, using the word given. Use between 3 and 8 words including the key word.",original_sentence:"Jack was arrested for careless driving, but Harry used his influence to get him out of trouble.",key_word:"PULLED",sentence_start:"Jack was arrested for careless driving, but Harry",sentence_end:"to get him out of trouble.",answer:"pulled a few strings",explanation:"'Pull strings' means to use one's influence or connections to get something done.",distractor_notes:"Common mistakes: 'pulled the strings' (wrong article)." },
   { task_type:"key_word_transformation",difficulty:"C2",instructions:"Complete the second sentence so that it has a similar meaning to the first, using the word given. Use between 3 and 8 words including the key word.",original_sentence:"If the new law is introduced, many small companies will be put out of business.",key_word:"DOWN",sentence_start:"If the new law is introduced, many small companies will have",sentence_end:".",answer:"to shut down",explanation:"'Shut down' means to cease operations. The structure requires 'to + infinitive' after 'will have'.",distractor_notes:"Both 'shut down' and 'close down' are accepted." },
